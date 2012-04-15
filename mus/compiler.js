@@ -79,6 +79,8 @@ var endTime = function (time, expr) {
         return time + expr.dur;
     } else if ( expr.tag === 'seq' ) {
         return endTime(endTime(time, expr.left), expr.right);
+    } else if ( expr.tag == 'par' ) {
+        return Math.max(endTime(time, expr.left), endTime(time, expr.right));
     } else {
         throw "Invalid expression type: '" + expr.tag + "'";
     }
@@ -114,8 +116,10 @@ var compile = function (musexpr, start) {
             } ];
     } else if ( musexpr.tag === 'seq' ) {
         return compile(musexpr.left, start).concat(compile(musexpr.right, endTime(start, musexpr.left)));
+    } else if ( musexpr.tag === 'par' ) {
+        return compile(musexpr.left, start).concat(compile(musexpr.right, start));
     } else {
-        throw "Invalid expression type: '" + expr.tag + "'";
+        throw "Invalid expression type: '" + musexpr.tag + "'";
     }
     
 };
@@ -149,3 +153,21 @@ var melody3_note = [
 assert_eq(compile(melody1_mus), melody1_note,       'One note test');
 assert_eq(compile(melody2_mus), melody2_note,       'Two note test');
 assert_eq(compile(melody3_mus), melody3_note,       'Four note test');
+
+
+var melody_mus = 
+    { tag: 'seq',
+      left: 
+       { tag: 'par',
+         left: { tag: 'note', pitch: 'c3', dur: 250 },
+         right: { tag: 'note', pitch: 'g4', dur: 500 } },
+      right:
+       { tag: 'par',
+         left: { tag: 'note', pitch: 'd3', dur: 500 },
+         right: { tag: 'note', pitch: 'f4', dur: 250 } } };
+var melody_note = [
+    { tag: 'note', pitch: 'c3', start: 0, dur: 250 },
+    { tag: 'note', pitch: 'g4', start: 0, dur: 500 },
+    { tag: 'note', pitch: 'd3', start: 500, dur: 500 },
+    { tag: 'note', pitch: 'f4', start: 500, dur: 250 } ];
+assert_eq(compile(melody_mus), melody_note,       'Four note test');
