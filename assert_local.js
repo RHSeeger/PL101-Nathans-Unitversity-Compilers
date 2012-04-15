@@ -15,7 +15,7 @@ GLOBAL.assert_eq = function assert_eq(left, right, msg){
     } else {
         any_errors = true;
         console.log("FAILED", msg);
-        console.log("\tactual: "+ JSON.stringify(left));
         console.log("\texpected: " + JSON.stringify(right));
+        console.log("\tactual  : "+ JSON.stringify(left));
     }
 };
