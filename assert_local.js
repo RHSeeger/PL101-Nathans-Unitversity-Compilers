@@ -10,9 +10,12 @@ GLOBAL.assert = function assert(pass, msg){
 
 GLOBAL.assert_eq = function assert_eq(left, right, msg){
     var pass = _und.isEqual(left, right);
-    var type = pass ? "PASSED" : "FAILED";
-    if(type === "FAILED") {
+    if (pass) {
+        console.log("PASSED", msg);
+    } else {
         any_errors = true;
+        console.log("FAILED", msg);
+        console.log("\tactual: "+ JSON.stringify(left));
+        console.log("\texpected: " + JSON.stringify(right));
     }
-    console.log(type, msg);
 };
