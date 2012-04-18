@@ -12,7 +12,65 @@ var prelude = function(expr) {
     };
 };
 
+var reverse = function(expr) {
+    if ( expr.tag === 'note' || expr.tag === 'rest' ) {
+        return expr;
+    } else if ( expr.tag === 'seq' ) {
+        return {
+            tag: 'seq',
+            left: reverse(expr.right),
+            right: reverse(expr.left)
+        };
+    } else {
+        throw "Invalid expression type: '" + expr.tag + "'";
+    }
+};
 
+var endTime = function (time, expr) {
+    //console.log("endTime(" + time + ", " + JSON.stringify(expr) + ")");
+    if ( expr.tag === 'note' || expr.tag === 'rest' ) {
+        return time + expr.dur;
+    } else if ( expr.tag === 'seq' ) {
+        return endTime(endTime(time, expr.left), expr.right);
+    } else if ( expr.tag == 'par' ) {
+        return Math.max(endTime(time, expr.left), endTime(time, expr.right));
+    } else {
+        throw "Invalid expression type: '" + expr.tag + "'";
+    }
+};
+
+var compile = function (musexpr, start) {
+    start = typeof start !== 'undefined' ? start : 0;
+
+    if ( musexpr.tag === 'note' ) {
+        return [ 
+            { 
+                tag: 'note',
+                pitch: musexpr.pitch,
+                start: start,
+                dur: musexpr.dur
+            } ];
+    } else if ( musexpr.tag === 'rest' ) {
+        return [ 
+            { 
+                tag: 'rest',
+                start: start,
+                dur: musexpr.dur
+            } ];
+    } else if ( musexpr.tag === 'seq' ) {
+        return compile(musexpr.left, start).concat(compile(musexpr.right, endTime(start, musexpr.left)));
+    } else if ( musexpr.tag === 'par' ) {
+        return compile(musexpr.left, start).concat(compile(musexpr.right, start));
+    } else {
+        throw "Invalid expression type: '" + musexpr.tag + "'";
+    }
+    
+};
+
+
+/*
+ * prelude
+ */
 var melody1 = { tag: 'note', pitch: 'c4', dur: 250 };
 var melody2 = 
     { tag: 'seq',
@@ -30,21 +88,9 @@ var melody3 =
 assert_eq(prelude(melody1), melody2, 'Single note input prelude test');
 assert_eq(prelude(melody2), melody3, 'Double note input prelude test');
 
-var reverse = function(expr) {
-    if ( expr.tag === 'note' ) {
-        return expr;
-    } else if ( expr.tag === 'seq' ) {
-        return {
-            tag: 'seq',
-            left: reverse(expr.right),
-            right: reverse(expr.left)
-        };
-    } else {
-        throw "Invalid expression type: '" + expr.tag + "'";
-    }
-};
-
-
+/*
+ * reverse
+ */
 var melody1 = { tag: 'note', pitch: 'a4', dur: 125 };
 var melody2 = 
     { tag: 'seq',
@@ -73,20 +119,9 @@ assert_eq(reverse(melody3), melody2,       'Four note test backwards');
 
 
 
-var endTime = function (time, expr) {
-    //console.log("endTime(" + time + ", " + JSON.stringify(expr) + ")");
-    if ( expr.tag === 'note' ) {
-        return time + expr.dur;
-    } else if ( expr.tag === 'seq' ) {
-        return endTime(endTime(time, expr.left), expr.right);
-    } else if ( expr.tag == 'par' ) {
-        return Math.max(endTime(time, expr.left), endTime(time, expr.right));
-    } else {
-        throw "Invalid expression type: '" + expr.tag + "'";
-    }
-};
-
-
+/*
+ * endTime
+ */
 var melody1_mus = { tag: 'note', pitch: 'a4', dur: 125 };
 var melody2_mus = 
     { tag: 'seq',
@@ -103,27 +138,9 @@ assert_eq(endTime(0, melody2_mus), 1500,       'Four note test');
 
 
 
-var compile = function (musexpr, start) {
-    start = typeof start !== 'undefined' ? start : 0;
-
-    if ( musexpr.tag === 'note' ) {
-        return [ 
-            { 
-                tag: 'note',
-                pitch: musexpr.pitch,
-                start: start,
-                dur: musexpr.dur
-            } ];
-    } else if ( musexpr.tag === 'seq' ) {
-        return compile(musexpr.left, start).concat(compile(musexpr.right, endTime(start, musexpr.left)));
-    } else if ( musexpr.tag === 'par' ) {
-        return compile(musexpr.left, start).concat(compile(musexpr.right, start));
-    } else {
-        throw "Invalid expression type: '" + musexpr.tag + "'";
-    }
-    
-};
-
+/*
+ * compile
+ */
 var melody1_mus = { tag: 'note', pitch: 'a4', dur: 125 };
 var melody1_note = [ 
     { tag: 'note', pitch: 'a4', start: 0, dur: 125 } ];
@@ -155,6 +172,10 @@ assert_eq(compile(melody2_mus), melody2_note,       'Two note test');
 assert_eq(compile(melody3_mus), melody3_note,       'Four note test');
 
 
+/*
+ * par(allel)
+ */
+
 var melody_mus = 
     { tag: 'seq',
       left: 
@@ -171,3 +192,29 @@ var melody_note = [
     { tag: 'note', pitch: 'd3', start: 500, dur: 500 },
     { tag: 'note', pitch: 'f4', start: 500, dur: 250 } ];
 assert_eq(compile(melody_mus), melody_note,       'Four note test');
+
+
+/*
+ * rest
+ */
+assert_eq(compile({ tag: 'rest', dur: 125 }), [ { tag: 'rest', start: 0, dur: 125 } ], "rest alone");
+assert_eq(
+    compile({ 
+        tag: 'seq',
+        left: { tag: 'rest', dur: 250 },
+        right: { tag: 'note', pitch: 'b4', dur: 150 }
+    }), [
+        { tag: 'rest', start: 0, dur: 250 },
+        { tag: 'note', pitch: 'b4', start: 250, dur: 150 } 
+    ],
+    "rest first in sequence");
+assert_eq(
+    compile({ 
+        tag: 'seq',
+        left: { tag: 'note', pitch: 'b4', dur: 150 },
+        right: { tag: 'rest', dur: 250 }
+    }), [
+        { tag: 'note', pitch: 'b4', start: 0, dur: 150 } ,
+        { tag: 'rest', start: 150, dur: 250 }
+    ],
+    "rest second in sequence");
