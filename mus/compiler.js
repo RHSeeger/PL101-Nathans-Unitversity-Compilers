@@ -46,7 +46,7 @@ var compile = function (musexpr, start) {
         return [ 
             { 
                 tag: 'note',
-                pitch: musexpr.pitch,
+                pitch: convert_pitch(musexpr.pitch),
                 start: start,
                 dur: musexpr.dur
             } ];
@@ -66,6 +66,14 @@ var compile = function (musexpr, start) {
     }
     
 };
+
+var convert_pitch = function(pitch) {
+    var notes = { c:0, d:2, e:4, f:5, g:7, a:9, b:11 }
+    if (pitch.length != 2) {
+        throw "Invalid pitch '" + pitch + "'";
+    }
+    return 12 + (pitch.charAt(1) * 12) + notes[pitch.charAt(0).toLowerCase()];
+}
 
 
 /*
@@ -143,14 +151,16 @@ assert_eq(endTime(0, melody2_mus), 1500,       'Four note test');
  */
 var melody1_mus = { tag: 'note', pitch: 'a4', dur: 125 };
 var melody1_note = [ 
-    { tag: 'note', pitch: 'a4', start: 0, dur: 125 } ];
+    { tag: 'note', pitch: convert_pitch('a4'), start: 0, dur: 125 } ];
+
 var melody2_mus = 
     { tag: 'seq',
       left: { tag: 'note', pitch: 'a4', dur: 250 },
       right: { tag: 'note', pitch: 'b4', dur: 250 } };
 var melody2_note = [
-    { tag: 'note', pitch: 'a4', start: 0, dur: 250 },
-    { tag: 'note', pitch: 'b4', start: 250, dur: 250 } ];
+    { tag: 'note', pitch: convert_pitch('a4'), start: 0, dur: 250 },
+    { tag: 'note', pitch: convert_pitch('b4'), start: 250, dur: 250 } ];
+
 var melody3_mus = 
     { tag: 'seq',
       left: 
@@ -162,10 +172,10 @@ var melody3_mus =
          left: { tag: 'note', pitch: 'c4', dur: 500 },
          right: { tag: 'note', pitch: 'd4', dur: 500 } } };
 var melody3_note = [
-    { tag: 'note', pitch: 'a4', start: 0, dur: 250 },
-    { tag: 'note', pitch: 'b4', start: 250, dur: 250 },
-    { tag: 'note', pitch: 'c4', start: 500, dur: 500 },
-    { tag: 'note', pitch: 'd4', start: 1000, dur: 500 } ];
+    { tag: 'note', pitch: convert_pitch('a4'), start: 0, dur: 250 },
+    { tag: 'note', pitch: convert_pitch('b4'), start: 250, dur: 250 },
+    { tag: 'note', pitch: convert_pitch('c4'), start: 500, dur: 500 },
+    { tag: 'note', pitch: convert_pitch('d4'), start: 1000, dur: 500 } ];
 
 assert_eq(compile(melody1_mus), melody1_note,       'One note test');
 assert_eq(compile(melody2_mus), melody2_note,       'Two note test');
@@ -187,10 +197,10 @@ var melody_mus =
          left: { tag: 'note', pitch: 'd3', dur: 500 },
          right: { tag: 'note', pitch: 'f4', dur: 250 } } };
 var melody_note = [
-    { tag: 'note', pitch: 'c3', start: 0, dur: 250 },
-    { tag: 'note', pitch: 'g4', start: 0, dur: 500 },
-    { tag: 'note', pitch: 'd3', start: 500, dur: 500 },
-    { tag: 'note', pitch: 'f4', start: 500, dur: 250 } ];
+    { tag: 'note', pitch: convert_pitch('c3'), start: 0, dur: 250 },
+    { tag: 'note', pitch: convert_pitch('g4'), start: 0, dur: 500 },
+    { tag: 'note', pitch: convert_pitch('d3'), start: 500, dur: 500 },
+    { tag: 'note', pitch: convert_pitch('f4'), start: 500, dur: 250 } ];
 assert_eq(compile(melody_mus), melody_note,       'Four note test');
 
 
@@ -205,7 +215,7 @@ assert_eq(
         right: { tag: 'note', pitch: 'b4', dur: 150 }
     }), [
         { tag: 'rest', start: 0, dur: 250 },
-        { tag: 'note', pitch: 'b4', start: 250, dur: 150 } 
+        { tag: 'note', pitch: convert_pitch('b4'), start: 250, dur: 150 } 
     ],
     "rest first in sequence");
 assert_eq(
@@ -214,7 +224,16 @@ assert_eq(
         left: { tag: 'note', pitch: 'b4', dur: 150 },
         right: { tag: 'rest', dur: 250 }
     }), [
-        { tag: 'note', pitch: 'b4', start: 0, dur: 150 } ,
+        { tag: 'note', pitch: convert_pitch('b4'), start: 0, dur: 150 } ,
         { tag: 'rest', start: 150, dur: 250 }
     ],
     "rest second in sequence");
+
+/*
+ * convert_pitch
+ */
+assert_eq(convert_pitch('c4'), 60, "convert_pitch c4");
+assert_eq(convert_pitch('e4'), 64, "convert_pitch e4");
+assert_eq(convert_pitch('g4'), 67, "convert_pitch g4");
+
+assert_eq(compile({ tag: 'note', pitch: 'a4', dur: 125 }), [ { tag: 'note', pitch: 69, start: 0, dur: 125 } ], "convert_pitch compile");
