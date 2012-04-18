@@ -61,6 +61,15 @@ var compile = function (musexpr, start) {
         return compile(musexpr.left, start).concat(compile(musexpr.right, endTime(start, musexpr.left)));
     } else if ( musexpr.tag === 'par' ) {
         return compile(musexpr.left, start).concat(compile(musexpr.right, start));
+    } else if ( musexpr.tag === 'repeat' ) {
+        var result = [];
+        for(var i=0; i<(musexpr.count*1); i++) {
+            result = result.concat(compile(musexpr.section, 
+                                           (result.length === 0 
+                                            ? 0 
+                                            : (result[result.length-1].start + result[result.length-1].dur))));
+        }
+        return result;
     } else {
         throw "Invalid expression type: '" + musexpr.tag + "'";
     }
@@ -237,3 +246,18 @@ assert_eq(convert_pitch('e4'), 64, "convert_pitch e4");
 assert_eq(convert_pitch('g4'), 67, "convert_pitch g4");
 
 assert_eq(compile({ tag: 'note', pitch: 'a4', dur: 125 }), [ { tag: 'note', pitch: 69, start: 0, dur: 125 } ], "convert_pitch compile");
+
+/*
+ * repeat
+ */
+
+assert_eq(
+    compile({ 
+        tag: 'repeat',
+        section: { tag: 'note', pitch: 'c4', dur: 250 },  
+        count: 3 
+    }), [
+        { tag: 'note', pitch: 60, start: 0, dur:250 },
+        { tag: 'note', pitch: 60, start: 250, dur:250 },
+        { tag: 'note', pitch: 60, start: 500, dur:250 }
+    ], "single repeat");
