@@ -1,0 +1,22 @@
+start =
+    wordlist
+
+wordlist =
+    first:word rest:( space word )*
+ 	{ return( [first].concat(
+            rest.map(function(item) { 
+                            return item[1]; 
+                        })
+            )
+        );
+    }
+    
+space =
+	[ ]
+    
+word = 
+	first:lower rest:lower*
+    { return first + rest.join(""); }
+    
+lower =
+	[a-z]
