@@ -43,3 +43,8 @@ assert_eq(parse("(+\tx\t3)"), ["+", "x", "3"],    "tabs");
 assert_eq(parse("'a"), ["quote", "a"], "quoted atom");
 assert_eq(parse("'(1 2 3)"), ["quote", ["1", "2", "3"]], "quoted atom");
 
+assert_eq(parse(";; commented text"), ["comment", " commented text"], "commented whole line");
+assert_eq(parse("a ;; ct"), ["a", ["comment", " ct"]], "comment after value");
+assert_eq(parse("a;;ct"), ["a", ["comment", "ct"]], "comment after value nospace");
+
+

@@ -1,5 +1,8 @@
-start = whitespace* item:(value / quoted) whitespace*
-        { return item; }
+start = whitespace* item:(comment / value / quoted) whitespace* citem:comment?
+    { return (citem !== "" ? [item, citem] : item); }
+
+comment = startComment line:restOfLine
+        { return ["comment", line]; }
 
 value = (atom / expression)
 
@@ -19,3 +22,8 @@ expression =
 
 quoted = "'" item:value
     { return ["quote", item]; }
+
+startComment = ";;"
+
+restOfLine = value:([^\n]*)
+    { return value.join(""); }
