@@ -1,4 +1,5 @@
-require("../assert_local.js");
+var assert = require("assert");
+//require("../assert_local.js");
 var PEG = require("./peg.js");
 var fs = require('fs');
 
@@ -23,8 +24,10 @@ try {
 }
 var parse = wrapExceptions(PEG.buildParser(filetext).parse);
 
-assert_eq(parse(""), undefined,    "don't parse empty string");
-assert_eq(parse("dog"), ["dog"],    "parse dog");
-assert_eq(parse("black dog"), ["black", "dog"],    "parse black dog");
-assert_eq(parse("angry black dog"), ["angry", "black", "dog"],    "parse angry black dog");
-assert_eq(parse("Gray dog"), undefined,    "don't parse Gray dog");
+// assert_eq(parse(""), undefined,    "don't parse empty string");
+// assert_eq(parse("dog"), ["dog"],    "parse dog");
+// assert_eq(parse("black dog"), ["black", "dog"],    "parse black dog");
+// assert_eq(parse("angry black dog"), ["angry", "black", "dog"],    "parse angry black dog");
+// assert_eq(parse("Gray dog"), undefined,    "don't parse Gray dog");
+assert.deepEqual(1,1);
+assert.deepEqual(parse("(a b c)"), ["a", "b", "c"]);
