@@ -1,9 +1,10 @@
-start =
-    atom
-    / expression
+start = whitespace* item:(value / quoted) whitespace*
+        { return item; }
 
-space =
-	[ ]
+value = (atom / expression)
+
+whitespace =
+    [ \t\n]
 
 validchar
     = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
@@ -13,9 +14,8 @@ atom =
         { return chars.join(""); }
 
 expression =
-    "(" first:start rest:( space start )* ")"
- 	{ 
-            return( [first].concat( 
-                rest.map(function(item) { return item[1]; }) 
-            ) );
-        }
+    "(" first:start+ ")"
+        { return first; }
+
+quoted = "'" item:value
+    { return ["quote", item]; }
