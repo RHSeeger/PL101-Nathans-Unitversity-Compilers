@@ -15,7 +15,7 @@ var wrapExceptions = function(f) {
 var filetext;
 
 try {
-    filetext = fs.readFileSync('grammer.peg', 'ascii');
+    filetext = fs.readFileSync('grammer-1.peg', 'ascii');
     //console.log("DATA: " + filetext);;
 } catch (err) {
     console.error("There was an error opening the file:");
