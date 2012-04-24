@@ -1,6 +1,6 @@
 //var assert = require("assert");
 require("../assert_local.js");
-var PEG = require("./peg.js");
+var PEG = require("pegjs");
 var fs = require('fs');
 
 var wrapExceptions = function(f) {
