@@ -48,15 +48,17 @@ var evalScheem = function (expr, env) {
     case 'quote':
         return expr[1];
     case '=':
-        var eq =
-            (evalScheem(expr[1], env) ===
-             evalScheem(expr[2], env));
-        if (eq) return '#t';
-        return '#f';
+        return (evalScheem(expr[1], env) === evalScheem(expr[2], env)) ? '#t' : '#f';
     case '<':
         return (evalScheem(expr[1], env) < evalScheem(expr[2], env)) ? '#t' : '#f';
     case '>':
         return (evalScheem(expr[1], env) > evalScheem(expr[2], env)) ? '#t' : '#f';
+    case 'cons':
+        return [evalScheem(expr[1],env)].concat(evalScheem(expr[2],env));
+    case 'car':
+        return evalScheem(expr[1])[0];
+    case 'cdr':
+        return evalScheem(expr[1]).slice(1);
     }
 };
 
@@ -119,3 +121,19 @@ assert_eq(evalScheem(['<', ['+', 1, 1], ['+', 2, 3]], {}),
 assert_eq(evalScheem(['=', 2, 2], {}), '#t',    '(= 2 2) test');
 assert_eq(evalScheem(['>', 2, 2], {}), '#f',    '(> 2 2) test');
 assert_eq(evalScheem(['>', 4, 3], {}), '#t',    '(> 2 3) test');
+
+/* Step 7 */
+assert_eq(evalScheem(['quote', [2, 3]], {}), [2, 3],
+    '(quote (2 3)) test');
+assert_eq(evalScheem(['cons', 1, ['quote', [2, 3]]], {}),
+    [1, 2, 3],
+    "(cons 1 '(2 3)) test");
+assert_eq(evalScheem(['cons', ['quote', [1, 2]], ['quote', 
+        [3, 4]]], {}), [[1, 2], 3, 4],
+    "(cons '(1 2) '(3 4)) test");
+assert_eq(evalScheem(['car', ['quote', [[1, 2], 3, 4]]], {}),
+    [1, 2],
+    "(car '((1 2) 3 4)) test");
+assert_eq(evalScheem(['cdr', ['quote', [[1, 2], 3, 4]]], {}),
+    [3, 4],
+    "(cdr '((1 2) 3 4)) test");
