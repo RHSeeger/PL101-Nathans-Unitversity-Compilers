@@ -311,15 +311,11 @@ SCHEEM = (function(){
           }
         }
         if (result0 !== null) {
+          result1 = [];
           result2 = parse_start();
-          if (result2 !== null) {
-            result1 = [];
-            while (result2 !== null) {
-              result1.push(result2);
-              result2 = parse_start();
-            }
-          } else {
-            result1 = null;
+          while (result2 !== null) {
+            result1.push(result2);
+            result2 = parse_start();
           }
           if (result1 !== null) {
             if (input.charCodeAt(pos) === 41) {

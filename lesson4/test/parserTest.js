@@ -89,6 +89,6 @@ suite('numbers', function() {
 
 suite('edge cases', function() {
     test('empty list', function() {
-        assert.deepEqual(parse("()"), []);
+        assert.deepEqual(parse("'()"), ["quote", []]);
     });
 });

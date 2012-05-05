@@ -20,7 +20,7 @@ atom =
         { return chars.join(""); }
 
 expression =
-    "(" first:start+ ")"
+    "(" first:start* ")"
         { return first; }
 
 quoted = "'" item:value
