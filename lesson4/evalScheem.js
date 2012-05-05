@@ -47,6 +47,16 @@ var evalScheem = function (expr, env) {
         return result;
     case 'quote':
         return expr[1];
+    case '=':
+        var eq =
+            (evalScheem(expr[1], env) ===
+             evalScheem(expr[2], env));
+        if (eq) return '#t';
+        return '#f';
+    case '<':
+        return (evalScheem(expr[1], env) < evalScheem(expr[2], env)) ? '#t' : '#f';
+    case '>':
+        return (evalScheem(expr[1], env) > evalScheem(expr[2], env)) ? '#t' : '#f';
     }
 };
 
@@ -97,3 +107,15 @@ assert_eq(evalScheem(['quote', ['+', 2, 3]], {}), ['+', 2, 3],
 assert_eq(evalScheem(['quote', ['quote', ['+', 2, 3]]], {}),
     ['quote', ['+', 2, 3]],
     '(quote (quote (+ 2 3))) test');
+
+/* Step 6 */
+assert_eq(evalScheem(['+', 2, 3], {}), 5,
+    '(+ 2 3) test');
+assert_eq(evalScheem(['<', 2, 2], {}), '#f',    '(< 2 2) test');
+assert_eq(evalScheem(['<', 2, 3], {}), '#t',    '(< 2 3) test');
+assert_eq(evalScheem(['<', ['+', 1, 1], ['+', 2, 3]], {}),
+    '#t',
+    '(< (+ 1 1) (+ 2 3)) test');
+assert_eq(evalScheem(['=', 2, 2], {}), '#t',    '(= 2 2) test');
+assert_eq(evalScheem(['>', 2, 2], {}), '#f',    '(> 2 2) test');
+assert_eq(evalScheem(['>', 4, 3], {}), '#t',    '(> 2 3) test');
