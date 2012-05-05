@@ -2,11 +2,15 @@
 <head>
   <meta charset="utf-8">
   <title>Scheem Live Demo</title>
-  <script src=
-    "http://nathansuniversity.com/js/jquery-1.7.1.min.js">
-  </script>
+  <script src="http://nathansuniversity.com/js/jquery-1.7.1.min.js"></script>
+
   <script src="../scheem.js"></script>
   <script src="../parser.js"></script>
+
+  <!-- CodeMirror -->
+  <script src="../CodeMirror-2.24/lib/codemirror.js"></script>
+  <link rel="stylesheet" href="../CodeMirror-2.24/lib/codemirror.css">
+  <script src="../CodeMirror-2.24/mode/scheme/scheme.js"></script>
 </head>
 <body>
 
@@ -26,8 +30,21 @@
   };
   // After page load
   $(function() {
+    var cm_options = {
+      mode:  "javascript",
+      indentUnit: 4,
+      lineNumbers: true,
+      matchBrackets: true,
+      extraKeys: {
+        "Tab": "indentAuto",
+        "Ctrl-Enter": function() { $('#submitbutton').click(); },
+        "Ctrl-S": function() { }
+      }
+    }
+    var editor = CodeMirror.fromTextArea($("#input")[0], cm_options);
+
     $('#submitbutton').click(function() {
-        var user_text = $('#input').val();
+        var user_text = editor.getValue();
         $('#console').html(''); // clear console
         log_console('Your input was: "' + user_text + '"');
         try {
