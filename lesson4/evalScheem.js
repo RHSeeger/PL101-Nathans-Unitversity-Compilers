@@ -39,6 +39,12 @@ var evalScheem = function (expr, env) {
     case 'define':
         env[expr[1]] = evalScheem(expr[2], env);
         return 0;
+    case 'begin':
+        var result;
+        for (var i=1 ; i<expr.length; i++) {
+            result = evalScheem(expr[i], env);
+        }
+        return result;
     }
 };
 
@@ -69,3 +75,14 @@ var tmp = evalScheem(['set!', 'x', 7], env);
 assert_eq(env, {x:7, y:3, z:10, a:1},    '(set! x 7) test');
 var tmp = evalScheem(['set!', 'y', ['+', 'x', 1]], env);
 assert_eq(env, {x:7, y:8, z:10, a:1},    '(set! y (+ x 1)) test');
+
+/* Stage 4 */
+assert_eq(evalScheem(['begin', 1, 2, 3], {}), 3,
+    '(begin 1 2 3) test');
+assert_eq(evalScheem(['begin', ['+', 2, 2]], {}), 4,
+    '(begin (+ 2 2)) test');
+assert_eq(evalScheem(['begin', 'x', 'y', 'x'], {x:1, y:2}), 1,
+    '(begin x y x) test');
+assert_eq(evalScheem(['begin', ['set!', 'x', 5], 
+        ['set!', 'x', ['+', 'y', 'x']], 'x'], {x:1, y:2}), 7,
+    '(begin (set! x 5) (set! x (+ y x) x)) test');
