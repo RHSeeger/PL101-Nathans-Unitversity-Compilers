@@ -175,3 +175,64 @@ suite('stage 8', function() {
     });
 });
 
+suite('+', function() {
+    test('no args', function() {
+        assert.deepEqual(evalScheem(['+'], {}), 0);
+    });
+    test('one arg', function() {
+        assert.deepEqual(evalScheem(['+', 1], {}), 1);
+    });
+    test('two arg', function() {
+        assert.deepEqual(evalScheem(['+', 2, 4], {}), 6);
+    });
+    test('more arg', function() {
+        assert.deepEqual(evalScheem(['+', 1, 2, 3, 4], {}), 10);
+    });
+});
+
+suite('-', function() {
+    test('no args', function() {
+        expect(function () {
+            evalScheem(['-'], {})
+        }).to.throw('/incorrect number of arguments/');
+    });
+    test('one arg', function() {
+        assert.deepEqual(evalScheem(['-', 1], {}), -1);
+    });
+    test('two arg', function() {
+        assert.deepEqual(evalScheem(['-', 4, 2], {}), 2);
+    });
+    test('more arg', function() {
+        assert.deepEqual(evalScheem(['-', 1, 2, 3, 4], {}), -8);
+    });
+});
+
+suite('*', function() {
+    test('no args', function() {
+        assert.deepEqual(evalScheem(['*'], {}), 1);
+    });
+    test('one arg', function() {
+        assert.deepEqual(evalScheem(['*', 10], {}), 10);
+    });
+    test('two arg', function() {
+        assert.deepEqual(evalScheem(['*', 2, 4], {}), 8);
+    });
+    test('more arg', function() {
+        assert.deepEqual(evalScheem(['*', 1, 2, 3, 4], {}), 24);
+    });
+});
+
+suite('/', function() {
+    test('no args', function() {
+        assert.deepEqual(evalScheem(['/'], {}), 1);
+    });
+    test('one arg', function() {
+        assert.deepEqual(evalScheem(['/', 2], {}), 1/2);
+    });
+    test('two arg', function() {
+        assert.deepEqual(evalScheem(['/', 4, 2], {}), 2);
+    });
+    test('more arg', function() {
+        assert.deepEqual(evalScheem(['/', 24, 4, 3, 1], {}), 2);
+    });
+});

@@ -10,13 +10,41 @@ var evalScheem = function (expr, env) {
     // Look at head of list for operation
     switch (expr[0]) {
     case '+':
-        return evalScheem(expr[1], env) + evalScheem(expr[2], env);
+        return expr.slice(1).map(function (elem, index) {
+            return evalScheem(elem, env);
+        }).reduce(function (e1, e2) {
+            return e1 + e2;
+        }, 0);
     case '-':
-        return evalScheem(expr[1], env) - evalScheem(expr[2], env);
+        if (expr.length < 2) {
+            throw "incorrect number of arguments to procedure";
+        }
+        return (expr.slice(1).length === 1)
+            ? (- expr[1]) 
+            : expr.slice(1).map(function (elem, index) {
+                return evalScheem(elem, env);
+            }).reduce(function (e1, e2) {
+                return e1 - e2;
+            });
     case '*':
-        return evalScheem(expr[1], env) * evalScheem(expr[2], env);
+        return expr.slice(1).map(function (elem, index) {
+            return evalScheem(elem, env);
+        }).reduce(function (e1, e2) {
+            return e1 * e2;
+        }, 1);
     case '/':
-        return evalScheem(expr[1], env) / evalScheem(expr[2], env);
+        switch(expr.slice(1).length) {
+        case 0:
+            return 1;
+        case 1:
+            return 1 / expr[1];
+        default:
+            return expr.slice(1).map(function (elem, index) {
+                return evalScheem(elem, env);
+            }).reduce(function (e1, e2) {
+                return e1 / e2;
+            });
+        }
     case 'set!':
         env[expr[1]] = evalScheem(expr[2], env);
         return 0;
