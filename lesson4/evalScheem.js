@@ -45,6 +45,8 @@ var evalScheem = function (expr, env) {
             result = evalScheem(expr[i], env);
         }
         return result;
+    case 'quote':
+        return expr[1];
     }
 };
 
@@ -86,3 +88,12 @@ assert_eq(evalScheem(['begin', 'x', 'y', 'x'], {x:1, y:2}), 1,
 assert_eq(evalScheem(['begin', ['set!', 'x', 5], 
         ['set!', 'x', ['+', 'y', 'x']], 'x'], {x:1, y:2}), 7,
     '(begin (set! x 5) (set! x (+ y x) x)) test');
+
+/* Stage 5 */
+assert_eq(evalScheem(['+', 2, 3], {}), 5,
+    '(+ 2 3) test');
+assert_eq(evalScheem(['quote', ['+', 2, 3]], {}), ['+', 2, 3],
+    '(quote (+ 2 3)) test');
+assert_eq(evalScheem(['quote', ['quote', ['+', 2, 3]]], {}),
+    ['quote', ['+', 2, 3]],
+    '(quote (quote (+ 2 3))) test');
