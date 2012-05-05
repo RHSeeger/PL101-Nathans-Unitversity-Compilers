@@ -35,6 +35,7 @@
             log_console('Parsed: ' + JSON.stringify(parsed));
             try {
                 var result = evalScheem(parsed, {});
+  alert(JSON.stringify(evalScheem(parsed, {})));
                 log_console('Result: ' + JSON.stringify(result));
             }
             catch(e) {
