@@ -59,7 +59,13 @@ var evalScheem = function (expr, env) {
         return evalScheem(expr[1])[0];
     case 'cdr':
         return evalScheem(expr[1]).slice(1);
-    }
+    case 'if':
+        if (evalScheem(expr[1], env) === '#t') {
+            return evalScheem(expr[2], env);
+        } else { 
+            return evalScheem(expr[3], env);
+        }
+   }
 };
 
 
@@ -137,3 +143,16 @@ assert_eq(evalScheem(['car', ['quote', [[1, 2], 3, 4]]], {}),
 assert_eq(evalScheem(['cdr', ['quote', [[1, 2], 3, 4]]], {}),
     [3, 4],
     "(cdr '((1 2) 3 4)) test");
+
+/* Step 8 */
+assert_eq(evalScheem(['if', ['=', 1, 1], 2, 3], {}), 2,
+    '(if (= 1 1) 2 3) test');
+assert_eq(evalScheem(['if', ['=', 1, 0], 2, 3], {}), 3,
+    '(if (= 1 0) 2 3) test');
+assert_eq(evalScheem(['if', ['=', 1, 1], 2, 'error'], {}), 2,
+    '(if (= 1 1) 2 error) test');
+assert_eq(evalScheem(['if', ['=', 1, 0], 'error', 3], {}), 3,
+    '(if (= 1 1) error 3) test');
+assert_eq(evalScheem(['if', ['=', 1, 1],
+        ['if', ['=', 2, 3], 10, 11], 12], {}), 11,
+    '(if (= 1 1) (if (= 2 3) 10 11) 12) test');
