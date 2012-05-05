@@ -1,6 +1,7 @@
 if (typeof module !== 'undefined') {
     // In Node.js load required modules
     var assert = require('chai').assert;
+    var expect = require('chai').expect;
     var PEG = require('pegjs');
     var fs = require('fs');
     var evalScheem = require('../scheem').evalScheem;
@@ -9,6 +10,7 @@ if (typeof module !== 'undefined') {
     // In browser assume loaded by <script>
     var parse = SCHEEM.parse;
     var assert = chai.assert;
+    var expect = chai.expect;
 }
 
 /*
