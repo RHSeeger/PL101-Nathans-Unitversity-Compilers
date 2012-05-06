@@ -7,6 +7,7 @@ if (typeof module !== 'undefined') {
     var scheem = require('../scheem');
     var evalScheem = scheem.evalScheem;
     var lookup = scheem.lookup;
+    var createEnv = scheem.createEnv;
     var parse = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
 } else {
     // In browser assume loaded by <script>
@@ -38,47 +39,66 @@ suite('+', function() {
 suite('-', function() {
     test('no args', function() {
         expect(function () {
-            evalScheem(['-'], {})
+            evalScheem(parse("(-)"), {})
         }).to.throw('/incorrect number of arguments/');
     });
     test('one arg', function() {
-        assert.deepEqual(evalScheem(['-', 1], {}), -1);
+        assert.deepEqual(evalScheem(parse("(- 1)"), {}), -1);
     });
     test('two arg', function() {
-        assert.deepEqual(evalScheem(['-', 4, 2], {}), 2);
+        assert.deepEqual(evalScheem(parse("(- 4 2)"), {}), 2);
     });
     test('more arg', function() {
-        assert.deepEqual(evalScheem(['-', 1, 2, 3, 4], {}), -8);
+        assert.deepEqual(evalScheem(parse("(- 1 2 3 4)"), {}), -8);
     });
 });
 
 suite('*', function() {
     test('no args', function() {
-        assert.deepEqual(evalScheem(['*'], {}), 1);
+        assert.deepEqual(evalScheem(parse("(*)"), {}), 1);
     });
     test('one arg', function() {
-        assert.deepEqual(evalScheem(['*', 10], {}), 10);
+        assert.deepEqual(evalScheem(parse("(* 10)"), {}), 10);
     });
     test('two arg', function() {
-        assert.deepEqual(evalScheem(['*', 2, 4], {}), 8);
+        assert.deepEqual(evalScheem(parse("(* 2 4)"), {}), 8);
     });
     test('more arg', function() {
-        assert.deepEqual(evalScheem(['*', 1, 2, 3, 4], {}), 24);
+        assert.deepEqual(evalScheem(parse("(* 1 2 3 4)"), {}), 24);
     });
 });
 
 suite('/', function() {
     test('no args', function() {
-        assert.deepEqual(evalScheem(['/'], {}), 1);
+        assert.deepEqual(evalScheem(parse("(\/)"), {}), 1);
     });
     test('one arg', function() {
-        assert.deepEqual(evalScheem(['/', 2], {}), 1/2);
+        assert.deepEqual(evalScheem(parse("(\/ 2)"), {}), 1/2); // not sure why I need to escape / here
     });
     test('two arg', function() {
-        assert.deepEqual(evalScheem(['/', 4, 2], {}), 2);
+        assert.deepEqual(evalScheem(parse("(/ 4 2)"), {}), 2);
     });
     test('more arg', function() {
-        assert.deepEqual(evalScheem(['/', 24, 4, 3, 1], {}), 2);
+assert.deepEqual(evalScheem(parse("(/ 24 4 3 1)"), {}), 2);
+    });
+});
+
+suite("lookup", function() {
+    test('Single binding', function() {
+        var env1 = createEnv("x", 19, null);
+        assert.deepEqual(lookup(env1, 'x'), 19);
+    });
+    test('Double binding inner', function() {
+        var env2 = createEnv("x", 19, createEnv("y", 16, null));
+        assert.deepEqual(lookup(env2, 'y'), 16);
+    });
+    test('Double binding outer', function() {
+        var env2 = createEnv("x", 19, createEnv("y", 16, null));
+        assert.deepEqual(lookup(env2, 'x'), 19);
+    });
+    test('Triple binding inner', function() {
+        var env3 = createEnv("x", 2, createEnv("y", 16, createEnv("x", 19, null)));
+        assert.deepEqual(lookup(env3, 'x'), 2);
     });
 });
 
