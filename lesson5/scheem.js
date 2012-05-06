@@ -5,7 +5,7 @@ var evalScheem = function (expr, env) {
     }
     // Strings are variable references
     if (typeof expr === 'string') {
-        return env[expr];
+        return lookup(env, expr);
     }
     // Look at head of list for operation
     switch (expr[0]) {
@@ -77,6 +77,10 @@ var evalScheem = function (expr, env) {
         } else { 
             return evalScheem(expr[3], env);
         }
+    case 'let-one':
+        var newenv = { name: expr[1], value: evalScheem(expr[2], env), outer: env };
+        //console.log("newenv: " + JSON.stringify(newenv));
+        return evalScheem(expr[3], newenv);
    }
 };
 
