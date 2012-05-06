@@ -82,6 +82,28 @@ suite('/', function() {
     });
 });
 
+suite("let-one", function() {
+    var env1 = { name: 'x', value: 19, outer: null };
+    var env2 = { name: 'y', value: 16, outer: env1};
+    var env3 = { name: 'x', value: 2, outer: env2};
+    test('Variable reference in environment', function() {
+        assert.deepEqual(evalScheem(parse('x'), env3), 2);
+    });
+    test('Variable references in environment', function() {
+        assert.deepEqual(evalScheem(parse("(+ x y)"), env3), 18);
+    });
+    test('let-one with computed value', function() {
+        assert.deepEqual(evalScheem(parse("(let-one x (+ 2 2) x)"), env3), 4);
+    });
+    test('let-one with environment, inner reference', function() {
+        assert.deepEqual(evalScheem(parse("(let-one z 7 z)"), env3), 7);
+    });
+    test('let-one with environment, outer reference', function() {
+        assert.deepEqual(evalScheem(parse("(let-one x 7 y)"), env3), 16);
+    });
+});
+
+/* Internal Tests */
 suite("lookup", function() {
     test('Single binding', function() {
         var env1 = { name: 'x', value: 19, outer: null };
@@ -105,7 +127,7 @@ suite("lookup", function() {
     });
 });
 
-suite("let-one", function() {
+suite("let-one-internal", function() {
     var env1 = { name: 'x', value: 19, outer: null };
     var env2 = { name: 'y', value: 16, outer: env1};
     var env3 = { name: 'x', value: 2, outer: env2};
