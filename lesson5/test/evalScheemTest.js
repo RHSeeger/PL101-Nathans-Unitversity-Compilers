@@ -104,7 +104,7 @@ suite("let-one", function() {
 });
 
 /* Internal Tests */
-suite("lookup", function() {
+suite("section 1 : lookup", function() {
     test('Single binding', function() {
         var env1 = { name: 'x', value: 19, outer: null };
         assert.deepEqual(lookup(env1, 'x'), 19);
@@ -127,7 +127,7 @@ suite("lookup", function() {
     });
 });
 
-suite("let-one-internal", function() {
+suite("section 2 : let-one-internal", function() {
     var env1 = { name: 'x', value: 19, outer: null };
     var env2 = { name: 'y', value: 16, outer: env1};
     var env3 = { name: 'x', value: 2, outer: env2};

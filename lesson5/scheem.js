@@ -78,9 +78,9 @@ var evalScheem = function (expr, env) {
             return evalScheem(expr[3], env);
         }
     case 'let-one':
-        var newenv = { name: expr[1], value: evalScheem(expr[2], env), outer: env };
+        // var newenv = { name: expr[1], value: evalScheem(expr[2], env), outer: env };
         //console.log("newenv: " + JSON.stringify(newenv));
-        return evalScheem(expr[3], newenv);
+        return evalScheem(expr[3], createEnv(expr[1], evalScheem(expr[2]), env));
    }
 };
 
@@ -95,9 +95,14 @@ var lookup = function (env, variable) {
     return undefined;
 };
 
+var createEnv = function(name, value, outer) {
+    return { name: name, value: value, outer: outer };
+}
+
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {
     module.exports.evalScheem = evalScheem;
     module.exports.lookup = lookup;
+    module.exports.createEnv = createEnv;
 }
 
