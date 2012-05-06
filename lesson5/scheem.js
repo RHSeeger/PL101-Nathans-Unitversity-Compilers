@@ -89,7 +89,7 @@ var lookup = function (env, variable) {
     }
     //throw "undefined variable: " + variable;
     return undefined;
-}
+};
 
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {
