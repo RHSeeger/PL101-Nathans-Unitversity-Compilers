@@ -1,0 +1,32 @@
+start = whitespace* item:(comment / value / quoted) whitespace* citem:comment?
+    { return (citem !== "" ? [item, citem] : item); }
+
+comment = startComment line:restOfLine
+        { return ["comment", line]; }
+
+value = (integer / atom / expression)
+
+whitespace =
+    [ \t\n]
+
+validchar
+    = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+
+integer = chars:[0-9]+
+        { return parseInt(chars.join("")); }
+
+atom =
+    chars:validchar+
+        { return chars.join(""); }
+
+expression =
+    "(" first:start* ")"
+        { return first; }
+
+quoted = "'" item:value
+    { return ["quote", item]; }
+
+startComment = ";;"
+
+restOfLine = value:([^\n]*)
+    { return value.join(""); }
