@@ -4,7 +4,9 @@ if (typeof module !== 'undefined') {
     var expect = require('chai').expect;
     var PEG = require('pegjs');
     var fs = require('fs');
-    var evalScheem = require('../scheem').evalScheem;
+    var scheem = require('../scheem');
+    var evalScheem = scheem.evalScheem;
+    var lookup = scheem.lookup;
     var parse = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
 } else {
     // In browser assume loaded by <script>
@@ -234,5 +236,28 @@ suite('/', function() {
     });
     test('more arg', function() {
         assert.deepEqual(evalScheem(['/', 24, 4, 3, 1], {}), 2);
+    });
+});
+
+suite("lesson-5-section-1", function() {
+    test('Single binding', function() {
+        var env1 = { name: 'x', value: 19, outer: null };
+        assert.deepEqual(lookup(env1, 'x'), 19);
+    });
+    test('Double binding inner', function() {
+        var env1 = { name: 'x', value: 19, outer: null };
+        var env2 = { name: 'y', value: 16, outer: env1 };
+        assert.deepEqual(lookup(env2, 'y'), 16);
+    });
+    test('Double binding outer', function() {
+        var env1 = { name: 'x', value: 19, outer: null };
+        var env2 = { name: 'y', value: 16, outer: env1 };
+        assert.deepEqual(lookup(env2, 'x'), 19);
+    });
+    test('Triple binding inner', function() {
+        var env1 = { name: 'x', value: 19, outer: null };
+        var env2 = { name: 'y', value: 16, outer: env1 };
+        var env3 = { name: 'x', value: 2, outer: env2 };
+        assert.deepEqual(lookup(env3, 'x'), 2);
     });
 });

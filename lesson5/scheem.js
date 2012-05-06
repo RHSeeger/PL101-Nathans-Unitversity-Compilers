@@ -80,8 +80,20 @@ var evalScheem = function (expr, env) {
    }
 };
 
+var lookup = function (env, variable) {
+    if (env.name === variable) {
+        return env.value;
+    } 
+    if (env.outer !== null) {
+        return lookup(env.outer, variable);
+    }
+    //throw "undefined variable: " + variable;
+    return undefined;
+}
+
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {
     module.exports.evalScheem = evalScheem;
+    module.exports.lookup = lookup;
 }
 
