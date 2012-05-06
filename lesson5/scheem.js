@@ -99,10 +99,21 @@ var createEnv = function(name, value, outer) {
     return { name: name, value: value, outer: outer };
 }
 
+var update = function(env, variable, value) {
+    for (var e = env; e !== null; e = e.outer) {
+        if (e.name === variable) {
+            e.value = value;
+            return value;
+        }
+    }
+    throw "undefined variable: " + variable;
+};
+
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {
     module.exports.evalScheem = evalScheem;
     module.exports.lookup = lookup;
     module.exports.createEnv = createEnv;
+    module.exports.update = update;
 }
 

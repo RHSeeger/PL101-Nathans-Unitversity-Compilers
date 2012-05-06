@@ -8,6 +8,7 @@ if (typeof module !== 'undefined') {
     var evalScheem = scheem.evalScheem;
     var lookup = scheem.lookup;
     var createEnv = scheem.createEnv;
+    var update = scheem.update;
     var parse = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
 } else {
     // In browser assume loaded by <script>
@@ -123,6 +124,11 @@ suite("let-one", function() {
     });
 });
 
+suite("set!", function() {
+    /* TODO: implement tests */
+});
+
+
 /* Internal Tests */
 suite("section 1 : lookup", function() {
     test('Single binding', function() {
@@ -168,3 +174,43 @@ suite("section 2 : let-one-internal", function() {
     });
 });
 
+suite("section 3 : update", function() {
+    var env1 = { name: 'x', value: 19, outer: null };
+    var env1u = { name: 'x', value: 20, outer: null };
+    var env2 = { name: 'y', value: 16, outer:
+                 { name: 'x', value: 19, outer: null }};
+    var env2u = { name: 'y', value: 10, outer:
+                  { name: 'x', value: 19, outer: null }};
+    var env2v = { name: 'y', value: 10, outer:
+                  { name: 'x', value: 20, outer: null }};
+    var env3 = { name: 'x', value: 2, outer: 
+                 { name: 'y', value: 16, outer: 
+                   { name: 'x', value: 19, outer: null }}};
+    var env3u = { name: 'x', value: 9, outer:
+                  { name: 'y', value: 16, outer: 
+                    { name: 'x', value: 19, outer: null }}};
+
+    test('Single binding', function() {
+        update(env1, 'x', 20);
+        assert.deepEqual(env1, env1u);
+    });
+    test('Double binding inner', function() {
+        update(env2, 'y', 10);
+        assert.deepEqual(env2, env2u);
+    });
+    test('Double binding outer', function() {
+        update(env2, 'x', 20);
+        assert.deepEqual(env2, env2v);
+    });
+    test('Triple binding inner', function() {
+        update(env3, 'x', 9);
+        assert.deepEqual(env3, env3u);
+    });
+});
+
+//{ name: 'x', value: 20, outer: { name: 'x', value: 19, outer: null } }
+//{ name: 'y', value: 10, outer: { name: 'x', value: 20, outer: null } }
+
+
+//{ name: 'y', value: 10, outer: { name: 'x', value: 19, outer: null } } 
+//{ name: 'y', value: 10, outer: { name: 'x', value: 20, outer: null } }
