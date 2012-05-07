@@ -79,10 +79,10 @@ suite('/', function() {
     });
     test('two arg', function() {
         assert.deepEqual(evalScheem(parse("(/ 4 2)"), {}), 2);
-    });
-    test('more arg', function() {
-assert.deepEqual(evalScheem(parse("(/ 24 4 3 1)"), {}), 2);
-    });
+     });
+     test('more arg', function() {
+         assert.deepEqual(evalScheem(parse("(/ 24 4 3 1)"), {}), 2);
+     });
 });
 
 suite("lookup", function() {
@@ -301,7 +301,10 @@ suite("section 7 : multiple args : functions", function() {
 });
 
 suite("section 7 : multiple args : lambda", function() {
-    test('parsed multivalue lamda', function() {
+    test('parsed multivalue lamda created', function() {
+        assert.deepEqual(typeof evalScheem(parse("(lambda (a b) (+ a b))"), {}), "function");
+    });
+    test('parsed multivalue lamda used', function() {
         assert.deepEqual(evalScheem(parse("((lambda (a b) (+ a b)) 1 2)"), {}), 3);
     });
 });
