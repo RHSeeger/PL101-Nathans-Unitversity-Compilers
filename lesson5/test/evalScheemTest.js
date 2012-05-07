@@ -318,11 +318,38 @@ suite("section 7 : multiple args : lambda", function() {
     test('parsed multivalue lamda used', function() {
         assert.deepEqual(evalScheem(parse("((lambda (a b) (+ a b)) 1 2)"), {}), 3);
     });
-    // this isn't right... need to redo it to remove the scope it was created in
+    // The a in the inner function returned comes from the original scope
     test('env capture is creator', function() {
-        var code = "(let-one a 5 ((lambda (b) (+ a b)) 2))";
-        var env = createEnv("a", 10, {});
-        assert.deepEqual(evalScheem(parse(code), env), 7);
+        var code = "(begin                                        \
+                        (define add-n (lambda (a)                 \
+                                          (lambda (x) (+ a x))))  \
+                        (define add-2 (add-n 2))                  \
+                        (add-2 5))";
+        assert.deepEqual(evalScheem(parse(code), {}), 7);
+    });
+    // The captured variable is shared between the functions
+    // Both see updates the other makes
+    test('env capture is shared', function() {
+        var code = "(begin                                                              \
+                        (define create-functions                                        \
+                            (lambda ()                                                  \
+                                (begin                                                  \
+                                    (define counter 0)                                  \
+                                    (define f100 (lambda ()                             \
+                                                   (begin                               \
+                                                       (set! counter (+ counter 100))   \
+                                                       counter)))                       \
+                                    (define f10 (lambda ()                              \
+                                                   (begin                               \
+                                                       (set! counter (+ counter 10))    \
+                                                       counter)))                       \
+                                    (list f10 f100))))                                  \
+                        (define fs (create-functions))                                  \
+                        (define lf10 (car fs))                                          \
+                        (define lf100 (car (cdr fs)))                                   \
+                        (lf10)                                                          \
+                        (lf100))";
+        assert.deepEqual(evalScheem(parse(code), {}), 110);
     });
 
 });

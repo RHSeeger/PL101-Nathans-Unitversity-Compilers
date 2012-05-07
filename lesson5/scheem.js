@@ -76,6 +76,12 @@ var evalScheem = function (expr, env) {
         return evalScheem(expr[1], env)[0];
     case 'cdr':
         return evalScheem(expr[1], env).slice(1);
+    case 'list':
+        var result = [];
+        for(var i=1; i<expr.length; i++) {
+            result.push(evalScheem(expr[i], env));
+        }
+        return result;
     case 'if':
         if (evalScheem(expr[1], env) === '#t') {
             return evalScheem(expr[2], env);
