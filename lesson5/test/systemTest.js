@@ -104,9 +104,25 @@ suite("define", function() {
     });
 });
 
-// suite("set!", function() {
-//     /* TODO: implement tests */
-// });
+suite("set!", function() {
+    test("simple", function() {
+        assert.deepEqual(seval("(begin (define x 2) (set! x 4) x)"), 4);
+    });
+    test("shadowed inner - changed", function() {
+        assert.deepEqual(seval("(let-one x 2            \
+                                    (let-one x 4        \
+                                        (begin          \
+                                            (set! x 6)  \
+                                            x)))"), 6);
+    });
+    test("shadowed outer - unchanged", function() {
+        assert.deepEqual(seval("(let-one x 2            \
+                                    (begin              \
+                                        (let-one x 4    \
+                                            (set! x 6)) \
+                                        x))"), 2);
+    });
+});
 
 
 // /* Internal Tests */
