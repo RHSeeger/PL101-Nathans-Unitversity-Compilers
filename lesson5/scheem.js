@@ -84,20 +84,29 @@ var evalScheem = function (expr, env) {
         var arg = expr[1];
         var body = expr[2];
         //console.log("lambda-one (arg=" + arg + ") (body=" + body + ")");
-        return function (x) {
-            return evalScheem(body, createEnv(arg, x, env));
+        return function (argList) {
+            return evalScheem(body, createEnv(arg, argList[0], env));
         };
+    case 'lambda':
+        lambda(expr.slice(1), env);
     default:
         return call_function(expr, env);
     }
 };
 
-var createEnv = function(name, value, outer) {
+var createEnv = function() { //varargs
+    if (arguments.length % 2 != 1) {
+        throw new Error("missing value for variable '" + arguments[arguments.length-1] + "'");
+    }
     var bindings = {};
-    bindings[name] = value;
+    for(var i=0; i<arguments.length-1; i+=2) {
+        var name = arguments[i];
+        var value = arguments[i+1];
+        bindings[name] = value;
+    }
     return {
         bindings: bindings,
-        outer: outer
+        outer: arguments[arguments.length-1]
     };
 };
 
@@ -126,7 +135,8 @@ var update = function(env, variable, value) {
     throw "undefined variable: " + variable;
 };
 
-var add_binding = function(env, variable, value) {
+var add_binding = function() { // varargs
+    var env = arguments[0];
     //console.log("env = " + JSON.stringify(env));
     if (!(env.hasOwnProperty('bindings'))) {
         //console.log("Initializing env.bindings");
@@ -136,10 +146,17 @@ var add_binding = function(env, variable, value) {
         //console.log("Initializing env.outer");
         env.outer = {}
     }
-    if (env.bindings.hasOwnProperty(variable)) {
-        throw new Error("variable " + variable + " already defined");
+    if (arguments.length % 2 != 1) {
+        throw new Error("missing value for variable '" + arguments[arguments.length-1] + "'");
     }
-    env.bindings[variable] = value;
+    for(var i=1; i<arguments.length; i+=2) {
+        var variable = arguments[i];
+        var value = arguments[i+1];
+        if (env.bindings.hasOwnProperty(variable)) {
+            throw new Error("variable " + variable + " already defined");
+        }
+        env.bindings[variable] = value;
+    }
 };
 
 var call_function = function(argList, env) {
@@ -149,9 +166,23 @@ var call_function = function(argList, env) {
     for (var i=1; i<argList.length; i++) {
         args.push(evalScheem(argList[i], env));
     }
-    return func.apply(null, args);
+    return func(args);
 //    return evalScheem(expr[0], env)(evalScheem(expr[1], env));
 };
+
+var lambda = function(argList, env) {
+    var args = []
+    for (var i=0; i<argList.length-1; i++) {
+        args.push(argList[i], env);
+    }
+
+        var arg = expr[1];
+        var body = expr[2];
+        //console.log("lambda-one (arg=" + arg + ") (body=" + body + ")");
+        return function (x) {
+            return evalScheem(body, createEnv(arg, x, env));
+        };
+}
 
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {

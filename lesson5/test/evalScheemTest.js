@@ -209,9 +209,9 @@ suite("section 3 : update", function() {
 });
 
 suite("section 4 - functions", function() {
-    var always3 = function (x) { return 3; };
-    var identity = function (x) { return x; };
-    var plusone = function (x) { return x + 1; };
+    var always3 = function (argList) { return 3; };
+    var identity = function (argList) { return argList[0]; };
+    var plusone = function (argList) { return argList[0] + 1; };
     var env = createEnv("always3", always3, 
                         createEnv("identity", identity, 
                                   createEnv("plusone", plusone, {})));
@@ -291,13 +291,17 @@ suite("section 6 - recursion", function() {
 
 suite("section 7 : multiple args : functions", function() {
     test('parsed multivalue function', function() {
-        var env = createEnv("add3", function(x,y,z) { return x + y + z; }, {});
+        var env = createEnv("add3", function(argList) { return argList[0] + argList[1] + argList[2]; }, {});
         assert.deepEqual(evalScheem(parse("(add3 1 2 3)"), env), 6);
     });
     test('parsed multivalue function evaled args', function() {
-        var env = createEnv("add3", function(x,y,z) { return x + y + z; }, {});
+        var env = createEnv("add3", function(al) { return al[0] + al[1] + al[2]; }, {});
         assert.deepEqual(evalScheem(parse("(add3 1 2 (add3 10 20 30))"), env), 63);
     });
+});
 
-
+suite("section 7 : multiple args : lambda", function() {
+    test('parsed multivalue lamda', function() {
+        assert.deepEqual(evalScheem(parse("((lambda (a b) (+ a b)) 1 2)"), {}), 3);
+    });
 });
