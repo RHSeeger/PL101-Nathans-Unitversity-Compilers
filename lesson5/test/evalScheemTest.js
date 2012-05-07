@@ -190,22 +190,6 @@ suite("section 5 - lambda", function() {
     test('(((lambda-one x (lambda-one x (+ x x))) 5) 3)', function() {
         assert.deepEqual(evalScheem([[['lambda-one', 'x', ['lambda-one', 'x', ['+', 'x', 'x']]], 5], 3], { }), 6);
     });
-    test("parsed ((lambda-one x x) 5)", function() {
-        var parsed = parse("((lambda-one x x) 5)");
-        //console.log("PARSED: " + JSON.stringify(parsed));
-        var evaled = evalScheem(parsed, { });
-        assert.deepEqual(evaled, 5); 
-    });
-    test("parsed ((lambda-one x (+ x 1)) 5)", function() {
-        var parsed = parse("((lambda-one x (+ x 1)) 5)");
-        var evaled = evalScheem(parsed, { });
-        assert.deepEqual(evaled, 6); 
-    });
-    test("parsed (((lambda-one x (lambda-one x (+ x x))) 5) 3)", function() {
-        var parsed = parse("(((lambda-one x (lambda-one x (+ x x))) 5) 3)");
-        var evaled = evalScheem(parsed, { });
-        assert.deepEqual(evaled, 6); 
-    });
 });
 
 suite("section 6 - recursion", function() {
@@ -225,11 +209,6 @@ suite("section 6 - recursion", function() {
         add_binding(env2, 'z', 9);
         assert.deepEqual(env2, env2u);
     });
-    test("factorial", function() {
-        var parsed = parse("(begin (define factorial (lambda-one x (if (= x 1) 1 (+ x (factorial (- x 1)))))) (factorial 4))");
-        var evaled = evalScheem(parsed, {});
-        assert.deepEqual(evaled, 10); 
-    });
 });
 
 suite("section 7 : multiple args : functions", function() {
@@ -241,47 +220,4 @@ suite("section 7 : multiple args : functions", function() {
         var env = createEnv("add3", function(al) { return al[0] + al[1] + al[2]; }, {});
         assert.deepEqual(evalScheem(parse("(add3 1 2 (add3 10 20 30))"), env), 63);
     });
-});
-
-suite("section 7 : multiple args : lambda", function() {
-    test('parsed multivalue lamda created', function() {
-        assert.deepEqual(typeof evalScheem(parse("(lambda (a b) (+ a b))"), {}), "function");
-    });
-    test('parsed multivalue lamda used', function() {
-        assert.deepEqual(evalScheem(parse("((lambda (a b) (+ a b)) 1 2)"), {}), 3);
-    });
-    // The a in the inner function returned comes from the original scope
-    test('env capture is creator', function() {
-        var code = "(begin                                        \
-                        (define add-n (lambda (a)                 \
-                                          (lambda (x) (+ a x))))  \
-                        (define add-2 (add-n 2))                  \
-                        (add-2 5))";
-        assert.deepEqual(evalScheem(parse(code), {}), 7);
-    });
-    // The captured variable is shared between the functions
-    // Both see updates the other makes
-    test('env capture is shared', function() {
-        var code = "(begin                                                              \
-                        (define create-functions                                        \
-                            (lambda ()                                                  \
-                                (begin                                                  \
-                                    (define counter 0)                                  \
-                                    (define f100 (lambda ()                             \
-                                                   (begin                               \
-                                                       (set! counter (+ counter 100))   \
-                                                       counter)))                       \
-                                    (define f10 (lambda ()                              \
-                                                   (begin                               \
-                                                       (set! counter (+ counter 10))    \
-                                                       counter)))                       \
-                                    (list f10 f100))))                                  \
-                        (define fs (create-functions))                                  \
-                        (define lf10 (car fs))                                          \
-                        (define lf100 (car (cdr fs)))                                   \
-                        (lf10)                                                          \
-                        (lf100))";
-        assert.deepEqual(evalScheem(parse(code), {}), 110);
-    });
-
 });
