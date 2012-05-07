@@ -8,7 +8,8 @@ if (typeof module !== 'undefined') {
     var evalScheem = scheem.evalScheem;
     var lookup = scheem.lookup;
     var createEnv = scheem.createEnv;
-    var update = scheem.update;
+    var update = scheem.update; 
+    var add_binding = scheem.add_binding;
     var parse = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
 } else {
     // In browser assume loaded by <script>
@@ -86,27 +87,28 @@ assert.deepEqual(evalScheem(parse("(/ 24 4 3 1)"), {}), 2);
 
 suite("lookup", function() {
     test('Single binding', function() {
-        var env1 = createEnv("x", 19, null);
+        var env1 = createEnv("x", 19, {});
         assert.deepEqual(lookup(env1, 'x'), 19);
     });
     test('Double binding inner', function() {
-        var env2 = createEnv("x", 19, createEnv("y", 16, null));
+        var env2 = createEnv("x", 19, createEnv("y", 16, {}));
         assert.deepEqual(lookup(env2, 'y'), 16);
     });
     test('Double binding outer', function() {
-        var env2 = createEnv("x", 19, createEnv("y", 16, null));
+        var env2 = createEnv("x", 19, createEnv("y", 16, {}));
         assert.deepEqual(lookup(env2, 'x'), 19);
     });
     test('Triple binding inner', function() {
-        var env3 = createEnv("x", 2, createEnv("y", 16, createEnv("x", 19, null)));
+        var env3 = createEnv("x", 2, createEnv("y", 16, createEnv("x", 19, {})));
         assert.deepEqual(lookup(env3, 'x'), 2);
     });
 });
 
 suite("let-one", function() {
-    var env1 = { name: 'x', value: 19, outer: null };
-    var env2 = { name: 'y', value: 16, outer: env1};
-    var env3 = { name: 'x', value: 2, outer: env2};
+    var env1 = createEnv("x", 19, {});
+    var env2 = createEnv("y", 16, env1);
+    var env3 = createEnv("x", 2, env2);
+
     test('Variable reference in environment', function() {
         assert.deepEqual(evalScheem(parse('x'), env3), 2);
     });
@@ -131,32 +133,29 @@ suite("set!", function() {
 
 /* Internal Tests */
 suite("section 1 : lookup", function() {
+    var env1 = createEnv("x", 19, {});
+    var env2 = createEnv("y", 16, env1);
+    var env3 = createEnv("x", 2, env2);
+
     test('Single binding', function() {
-        var env1 = { name: 'x', value: 19, outer: null };
         assert.deepEqual(lookup(env1, 'x'), 19);
     });
     test('Double binding inner', function() {
-        var env1 = { name: 'x', value: 19, outer: null };
-        var env2 = { name: 'y', value: 16, outer: env1 };
         assert.deepEqual(lookup(env2, 'y'), 16);
     });
     test('Double binding outer', function() {
-        var env1 = { name: 'x', value: 19, outer: null };
-        var env2 = { name: 'y', value: 16, outer: env1 };
         assert.deepEqual(lookup(env2, 'x'), 19);
     });
     test('Triple binding inner', function() {
-        var env1 = { name: 'x', value: 19, outer: null };
-        var env2 = { name: 'y', value: 16, outer: env1 };
-        var env3 = { name: 'x', value: 2, outer: env2 };
         assert.deepEqual(lookup(env3, 'x'), 2);
     });
 });
 
 suite("section 2 : let-one-internal", function() {
-    var env1 = { name: 'x', value: 19, outer: null };
-    var env2 = { name: 'y', value: 16, outer: env1};
-    var env3 = { name: 'x', value: 2, outer: env2};
+    var env1 = createEnv("x", 19, {});
+    var env2 = createEnv("y", 16, env1);
+    var env3 = createEnv("x", 2, env2);
+
     test('Variable reference in environment', function() {
         assert.deepEqual(evalScheem('x', env3), 2);
     });
@@ -175,20 +174,15 @@ suite("section 2 : let-one-internal", function() {
 });
 
 suite("section 3 : update", function() {
-    var env1 = { name: 'x', value: 19, outer: null };
-    var env1u = { name: 'x', value: 20, outer: null };
-    var env2 = { name: 'y', value: 16, outer:
-                 { name: 'x', value: 19, outer: null }};
-    var env2u = { name: 'y', value: 10, outer:
-                  { name: 'x', value: 19, outer: null }};
-    var env2v = { name: 'y', value: 10, outer:
-                  { name: 'x', value: 20, outer: null }};
-    var env3 = { name: 'x', value: 2, outer: 
-                 { name: 'y', value: 16, outer: 
-                   { name: 'x', value: 19, outer: null }}};
-    var env3u = { name: 'x', value: 9, outer:
-                  { name: 'y', value: 16, outer: 
-                    { name: 'x', value: 19, outer: null }}};
+    var env1 = createEnv("x", 19, {});
+    var env1u = createEnv("x", 20, {});
+
+    var env2 = createEnv("y", 16, createEnv("x", 19, {}));
+    var env2u = createEnv("y", 10, createEnv("x", 19, {}));
+    var env2v = createEnv("y", 10, createEnv("x", 20, {}));
+
+    var env3 = createEnv("x", 2, createEnv("y", 16, createEnv("x", 19, {})));
+    var env3u = createEnv("x", 9, createEnv("y", 16, createEnv("x", 19, {})));
 
     test('Single binding', function() {
         update(env1, 'x', 20);
@@ -212,10 +206,9 @@ suite("section 4 - functions", function() {
     var always3 = function (x) { return 3; };
     var identity = function (x) { return x; };
     var plusone = function (x) { return x + 1; };
-    var env = {
-        name: 'always3', value: always3, outer: {
-            name: 'identity', value: identity, outer: {
-                name: 'plusone', value: plusone, outer: null}}};
+    var env = createEnv("always3", always3, 
+                        createEnv("identity", identity, 
+                                  createEnv("plusone", plusone, {})));
 
     test('(always3 5)', function() {
         assert.deepEqual(evalScheem(['always3', 5], env), 3);
@@ -235,3 +228,36 @@ suite("section 4 - functions", function() {
     // TODO: Add tests for unknown function
 });
 
+suite("section 5 - lambda", function() {
+    test('((lambda-one x x) 5)', function() {
+        assert.deepEqual(evalScheem([['lambda-one', 'x', 'x'], 5], { }), 5);
+    });
+    test('((lambda-one x (+ x 1)) 5)', function() {
+        assert.deepEqual(evalScheem([['lambda-one', 'x', ['+', 'x', 1]], 5], { }), 6);
+    });
+    test('(((lambda-one x (lambda-one y (+ x y))) 5) 3)', function() {
+        assert.deepEqual(evalScheem([[['lambda-one', 'x', ['lambda-one', 'y', ['+', 'x', 'y']]], 5], 3], { }), 8);
+    });
+    test('(((lambda-one x (lambda-one x (+ x x))) 5) 3)', function() {
+        assert.deepEqual(evalScheem([[['lambda-one', 'x', ['lambda-one', 'x', ['+', 'x', 'x']]], 5], 3], { }), 6);
+    });
+});
+
+suite("section 6 - recursion", function() {
+    var env1 = { bindings: {'x': 19}, outer: { } };
+    var env1u = { bindings: {'x': 19, 'y': 3}, outer: { } };
+    
+    var env2 = { bindings: {'y': 16}, outer:
+                 { bindings: {'x': 19}, outer: { } }};
+    var env2u = { bindings: {'z': 9, 'y': 16}, outer:
+                  { bindings: {'x': 19}, outer: { } }};
+
+    test('Simple new binding', function() {
+        add_binding(env1, 'y', 3);
+        assert.deepEqual(env1, env1u);
+    });
+    test('New binding', function() {
+        add_binding(env2, 'z', 9);
+        assert.deepEqual(env2, env2u);
+    });
+});

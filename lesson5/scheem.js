@@ -48,10 +48,10 @@ var evalScheem = function (expr, env) {
         }
         break;
     case 'set!':
-        env[expr[1]] = evalScheem(expr[2], env);
+        env.bindgings[expr[1]] = evalScheem(expr[2], env);
         return 0;
     case 'define':
-        env[expr[1]] = evalScheem(expr[2], env);
+        env.bindings[expr[1]] = evalScheem(expr[2], env);
         return 0;
     case 'begin':
         var result;
@@ -79,38 +79,58 @@ var evalScheem = function (expr, env) {
         }
         return evalScheem(expr[3], env);
     case 'let-one':
-        // var newenv = { name: expr[1], value: evalScheem(expr[2], env), outer: env };
-        //console.log("newenv: " + JSON.stringify(newenv));
         return evalScheem(expr[3], createEnv(expr[1], evalScheem(expr[2]), env));
+    case 'lambda-one':
+        var arg = expr[1];
+        var body = expr[2];
+        //console.log("lambda-one (arg=" + arg + ") (body=" + body + ")");
+        return function (x) {
+            return evalScheem(body, createEnv(arg, x, env));
+        };
     default:
-        var func = lookup(env, expr[0]);
-        return func(evalScheem(expr[1], env));
-   }
-};
-
-var lookup = function (env, variable) {
-    if (env.name === variable) {
-        return env.value;
-    } 
-    if (env.outer !== null) {
-        return lookup(env.outer, variable);
+        return evalScheem(expr[0], env)(evalScheem(expr[1], env));
     }
-    //throw "undefined variable: " + variable;
-    return undefined;
 };
 
 var createEnv = function(name, value, outer) {
-    return { name: name, value: value, outer: outer };
-}
+    var bindings = {};
+    bindings[name] = value;
+    return {
+        bindings: bindings,
+        outer: outer
+    };
+};
+
+var lookup = function (env, variable) {
+    //console.log("looking for " + variable + " in " + JSON.stringify(env));
+    if (!(env.hasOwnProperty('bindings'))) {
+        return undefined;
+        //        throw new Error("not an environment: " + JSON.stringify(env));
+    }
+    if (env.bindings.hasOwnProperty(variable)) {
+        return env.bindings[variable];
+    }
+    return lookup(env.outer, variable);
+};
 
 var update = function(env, variable, value) {
     for (var e = env; e !== null; e = e.outer) {
-        if (e.name === variable) {
-            e.value = value;
+        if (!(e.hasOwnProperty("bindings"))) {
+            throw new Error("undefined variable: " + variable);
+        }
+        if (e.bindings.hasOwnProperty(variable)) {
+            e.bindings[variable] = value;
             return value;
         }
     }
     throw "undefined variable: " + variable;
+};
+
+var add_binding = function(env, variable, value) {
+    if (env.bindings.hasOwnProperty(variable)) {
+        throw new Error("variable " + variable + " already defined");
+    }
+    env.bindings[variable] = value;
 };
 
 // If we are used as Node module, export evalScheem
@@ -119,5 +139,6 @@ if (typeof module !== 'undefined') {
     module.exports.lookup = lookup;
     module.exports.createEnv = createEnv;
     module.exports.update = update;
+    module.exports.add_binding = add_binding;
 }
 
