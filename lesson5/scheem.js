@@ -88,7 +88,7 @@ var evalScheem = function (expr, env) {
             return evalScheem(body, createEnv(arg, x, env));
         };
     default:
-        return evalScheem(expr[0], env)(evalScheem(expr[1], env));
+        return call_function(expr, env);
     }
 };
 
@@ -127,7 +127,7 @@ var update = function(env, variable, value) {
 };
 
 var add_binding = function(env, variable, value) {
-    console.log("env = " + JSON.stringify(env));
+    //console.log("env = " + JSON.stringify(env));
     if (!(env.hasOwnProperty('bindings'))) {
         //console.log("Initializing env.bindings");
         env.bindings = {}
@@ -140,6 +140,17 @@ var add_binding = function(env, variable, value) {
         throw new Error("variable " + variable + " already defined");
     }
     env.bindings[variable] = value;
+};
+
+var call_function = function(argList, env) {
+    var func = evalScheem(argList[0], env);
+    //console.log("call_function on " + JSON.stringify(args));
+    var args = []
+    for (var i=1; i<argList.length; i++) {
+        args.push(evalScheem(argList[i], env));
+    }
+    return func.apply(null, args);
+//    return evalScheem(expr[0], env)(evalScheem(expr[1], env));
 };
 
 // If we are used as Node module, export evalScheem

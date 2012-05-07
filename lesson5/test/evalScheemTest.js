@@ -288,3 +288,16 @@ suite("section 6 - recursion", function() {
         assert.deepEqual(evaled, 10); 
     });
 });
+
+suite("section 7 : multiple args : functions", function() {
+    test('parsed multivalue function', function() {
+        var env = createEnv("add3", function(x,y,z) { return x + y + z; }, {});
+        assert.deepEqual(evalScheem(parse("(add3 1 2 3)"), env), 6);
+    });
+    test('parsed multivalue function evaled args', function() {
+        var env = createEnv("add3", function(x,y,z) { return x + y + z; }, {});
+        assert.deepEqual(evalScheem(parse("(add3 1 2 (add3 10 20 30))"), env), 63);
+    });
+
+
+});
