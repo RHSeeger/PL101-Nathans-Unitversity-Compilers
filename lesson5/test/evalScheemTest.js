@@ -22,67 +22,6 @@ if (typeof module !== 'undefined') {
  * TESTS
  */
 
-suite('+', function() {
-    test('no args', function() {
-        assert.deepEqual(evalScheem(parse('(+)'), {}), 0);
-    });
-    test('one arg', function() {
-        assert.deepEqual(evalScheem(parse('(+ 1)'), {}), 1);
-    });
-    test('two arg', function() {
-        assert.deepEqual(evalScheem(parse("(+ 2 4)"), {}), 6);
-    });
-    test('more arg', function() {
-        assert.deepEqual(evalScheem(parse("(+ 1 2 3 4)"), {}), 10);
-    });
-});
-
-suite('-', function() {
-    test('no args', function() {
-        expect(function () {
-            evalScheem(parse("(-)"), {})
-        }).to.throw('/incorrect number of arguments/');
-    });
-    test('one arg', function() {
-        assert.deepEqual(evalScheem(parse("(- 1)"), {}), -1);
-    });
-    test('two arg', function() {
-        assert.deepEqual(evalScheem(parse("(- 4 2)"), {}), 2);
-    });
-    test('more arg', function() {
-        assert.deepEqual(evalScheem(parse("(- 1 2 3 4)"), {}), -8);
-    });
-});
-
-suite('*', function() {
-    test('no args', function() {
-        assert.deepEqual(evalScheem(parse("(*)"), {}), 1);
-    });
-    test('one arg', function() {
-        assert.deepEqual(evalScheem(parse("(* 10)"), {}), 10);
-    });
-    test('two arg', function() {
-        assert.deepEqual(evalScheem(parse("(* 2 4)"), {}), 8);
-    });
-    test('more arg', function() {
-        assert.deepEqual(evalScheem(parse("(* 1 2 3 4)"), {}), 24);
-    });
-});
-
-suite('/', function() {
-    test('no args', function() {
-        assert.deepEqual(evalScheem(parse("(\/)"), {}), 1);
-    });
-    test('one arg', function() {
-        assert.deepEqual(evalScheem(parse("(\/ 2)"), {}), 1/2); // not sure why I need to escape / here
-    });
-    test('two arg', function() {
-        assert.deepEqual(evalScheem(parse("(/ 4 2)"), {}), 2);
-    });
-    test('more arg', function() {
-        assert.deepEqual(evalScheem(parse("(/ 24 4 3 1)"), {}), 2);
-    });
-});
 
 suite("lookup", function() {
     test('Single binding', function() {
@@ -125,11 +64,6 @@ suite("let-one", function() {
     });
 });
 
-suite("define", function() {
-    test("simple", function() {
-        assert.deepEqual(evalScheem(parse("(begin (define x 2) x)"), {}), 2);
-    });
-});
 
 suite("set!", function() {
     /* TODO: implement tests */
@@ -143,8 +77,6 @@ suite('createEnv', function() {
     test('simple', function() {
         var result = createEnv("a", 4, {});
         var expect = { bindings: {'a': 4}, outer: {} };
-        console.log("SIMPLE: " + JSON.stringify(result));
-        console.log("THING: " + JSON.stringify(expect));
         assert.deepEqual(result, expect);
     });
 });
