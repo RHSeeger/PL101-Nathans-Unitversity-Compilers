@@ -208,9 +208,30 @@ suite("section 3 : update", function() {
     });
 });
 
-//{ name: 'x', value: 20, outer: { name: 'x', value: 19, outer: null } }
-//{ name: 'y', value: 10, outer: { name: 'x', value: 20, outer: null } }
+suite("section 4 - functions", function() {
+    var always3 = function (x) { return 3; };
+    var identity = function (x) { return x; };
+    var plusone = function (x) { return x + 1; };
+    var env = {
+        name: 'always3', value: always3, outer: {
+            name: 'identity', value: identity, outer: {
+                name: 'plusone', value: plusone, outer: null}}};
 
+    test('(always3 5)', function() {
+        assert.deepEqual(evalScheem(['always3', 5], env), 3);
+    });
+    test('(identity 5)', function() {
+        assert.deepEqual(evalScheem(['identity', 5], env), 5);
+    });
+    test('(plusone 5)', function() {
+        assert.deepEqual(evalScheem(['plusone', 5], env), 6);
+    });
+    test('(plusone (always3 5))', function() {
+        assert.deepEqual(evalScheem(['plusone', ['always3', 5]], env), 4);
+    });
+    test('(plusone (+ (plusone 2) (plusone 3)))', function() {
+        assert.deepEqual(evalScheem(['plusone', ['+', ['plusone', 2], ['plusone', 3]]], env), 8);
+    });
+    // TODO: Add tests for unknown function
+});
 
-//{ name: 'y', value: 10, outer: { name: 'x', value: 19, outer: null } } 
-//{ name: 'y', value: 10, outer: { name: 'x', value: 20, outer: null } }

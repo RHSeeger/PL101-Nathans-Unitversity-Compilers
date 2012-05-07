@@ -19,13 +19,14 @@ var evalScheem = function (expr, env) {
         if (expr.length < 2) {
             throw "incorrect number of arguments to procedure";
         }
-        return (expr.slice(1).length === 1)
-            ? (- expr[1]) 
-            : expr.slice(1).map(function (elem, index) {
-                return evalScheem(elem, env);
-            }).reduce(function (e1, e2) {
-                return e1 - e2;
-            });
+        if (expr.slice(1).length === 1) {
+            return (- expr[1]);
+        }
+        return expr.slice(1).map(function (elem, index) {
+            return evalScheem(elem, env);
+        }).reduce(function (e1, e2) {
+            return e1 - e2;
+        });
     case '*':
         return expr.slice(1).map(function (elem, index) {
             return evalScheem(elem, env);
@@ -45,6 +46,7 @@ var evalScheem = function (expr, env) {
                 return e1 / e2;
             });
         }
+        break;
     case 'set!':
         env[expr[1]] = evalScheem(expr[2], env);
         return 0;
@@ -74,13 +76,15 @@ var evalScheem = function (expr, env) {
     case 'if':
         if (evalScheem(expr[1], env) === '#t') {
             return evalScheem(expr[2], env);
-        } else { 
-            return evalScheem(expr[3], env);
         }
+        return evalScheem(expr[3], env);
     case 'let-one':
         // var newenv = { name: expr[1], value: evalScheem(expr[2], env), outer: env };
         //console.log("newenv: " + JSON.stringify(newenv));
         return evalScheem(expr[3], createEnv(expr[1], evalScheem(expr[2]), env));
+    default:
+        var func = lookup(env, expr[0]);
+        return func(evalScheem(expr[1], env));
    }
 };
 
