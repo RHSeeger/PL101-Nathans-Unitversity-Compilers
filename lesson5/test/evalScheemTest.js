@@ -126,6 +126,12 @@ suite("let-one", function() {
     });
 });
 
+suite("define", function() {
+    test("simple", function() {
+        assert.deepEqual(evalScheem(parse("(begin (define x 2) x)"), {}), 2);
+    });
+});
+
 suite("set!", function() {
     /* TODO: implement tests */
 });
@@ -241,6 +247,22 @@ suite("section 5 - lambda", function() {
     test('(((lambda-one x (lambda-one x (+ x x))) 5) 3)', function() {
         assert.deepEqual(evalScheem([[['lambda-one', 'x', ['lambda-one', 'x', ['+', 'x', 'x']]], 5], 3], { }), 6);
     });
+    test("parsed ((lambda-one x x) 5)", function() {
+        var parsed = parse("((lambda-one x x) 5)");
+        //console.log("PARSED: " + JSON.stringify(parsed));
+        var evaled = evalScheem(parsed, { });
+        assert.deepEqual(evaled, 5); 
+    });
+    test("parsed ((lambda-one x (+ x 1)) 5)", function() {
+        var parsed = parse("((lambda-one x (+ x 1)) 5)");
+        var evaled = evalScheem(parsed, { });
+        assert.deepEqual(evaled, 6); 
+    });
+    test("parsed (((lambda-one x (lambda-one x (+ x x))) 5) 3)", function() {
+        var parsed = parse("(((lambda-one x (lambda-one x (+ x x))) 5) 3)");
+        var evaled = evalScheem(parsed, { });
+        assert.deepEqual(evaled, 6); 
+    });
 });
 
 suite("section 6 - recursion", function() {
@@ -259,5 +281,10 @@ suite("section 6 - recursion", function() {
     test('New binding', function() {
         add_binding(env2, 'z', 9);
         assert.deepEqual(env2, env2u);
+    });
+    test("factorial", function() {
+        var parsed = parse("(begin (define factorial (lambda-one x (if (= x 1) 1 (+ x (factorial (- x 1)))))) (factorial 4))");
+        var evaled = evalScheem(parsed, {});
+        assert.deepEqual(evaled, 10); 
     });
 });

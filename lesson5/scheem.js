@@ -48,10 +48,10 @@ var evalScheem = function (expr, env) {
         }
         break;
     case 'set!':
-        env.bindgings[expr[1]] = evalScheem(expr[2], env);
+        update(env, expr[1], evalScheem(expr[2], env));
         return 0;
     case 'define':
-        env.bindings[expr[1]] = evalScheem(expr[2], env);
+        add_binding(env, expr[1], evalScheem(expr[2], env));
         return 0;
     case 'begin':
         var result;
@@ -127,6 +127,15 @@ var update = function(env, variable, value) {
 };
 
 var add_binding = function(env, variable, value) {
+    console.log("env = " + JSON.stringify(env));
+    if (!(env.hasOwnProperty('bindings'))) {
+        //console.log("Initializing env.bindings");
+        env.bindings = {}
+    }
+    if (!(env.hasOwnProperty('outer'))) {
+        //console.log("Initializing env.outer");
+        env.outer = {}
+    }
     if (env.bindings.hasOwnProperty(variable)) {
         throw new Error("variable " + variable + " already defined");
     }
