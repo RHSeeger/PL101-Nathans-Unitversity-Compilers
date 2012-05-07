@@ -22,7 +22,6 @@ if (typeof module !== 'undefined') {
  * TESTS
  */
 
-
 suite('+', function() {
     test('no args', function() {
         assert.deepEqual(evalScheem(parse('(+)'), {}), 0);
@@ -79,10 +78,10 @@ suite('/', function() {
     });
     test('two arg', function() {
         assert.deepEqual(evalScheem(parse("(/ 4 2)"), {}), 2);
-     });
-     test('more arg', function() {
-         assert.deepEqual(evalScheem(parse("(/ 24 4 3 1)"), {}), 2);
-     });
+    });
+    test('more arg', function() {
+        assert.deepEqual(evalScheem(parse("(/ 24 4 3 1)"), {}), 2);
+    });
 });
 
 suite("lookup", function() {
@@ -138,6 +137,18 @@ suite("set!", function() {
 
 
 /* Internal Tests */
+
+
+suite('createEnv', function() {
+    test('simple', function() {
+        var result = createEnv("a", 4, {});
+        var expect = { bindings: {'a': 4}, outer: {} };
+        console.log("SIMPLE: " + JSON.stringify(result));
+        console.log("THING: " + JSON.stringify(expect));
+        assert.deepEqual(result, expect);
+    });
+});
+
 suite("section 1 : lookup", function() {
     var env1 = createEnv("x", 19, {});
     var env2 = createEnv("y", 16, env1);
@@ -307,4 +318,11 @@ suite("section 7 : multiple args : lambda", function() {
     test('parsed multivalue lamda used', function() {
         assert.deepEqual(evalScheem(parse("((lambda (a b) (+ a b)) 1 2)"), {}), 3);
     });
+    // this isn't right... need to redo it to remove the scope it was created in
+    test('env capture is creator', function() {
+        var code = "(let-one a 5 ((lambda (b) (+ a b)) 2))";
+        var env = createEnv("a", 10, {});
+        assert.deepEqual(evalScheem(parse(code), env), 7);
+    });
+
 });

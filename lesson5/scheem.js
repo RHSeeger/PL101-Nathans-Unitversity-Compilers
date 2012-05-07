@@ -1,4 +1,7 @@
 var evalScheem = function (expr, env) {
+    if (typeof env === "undefined") {
+        throw new Error("called evalScheem with no env: " + JSON.stringify(expr));
+    }
     // Numbers evaluate to themselves
     if (typeof expr === 'number') {
         return expr;
@@ -70,16 +73,20 @@ var evalScheem = function (expr, env) {
     case 'cons':
         return [evalScheem(expr[1],env)].concat(evalScheem(expr[2],env));
     case 'car':
-        return evalScheem(expr[1])[0];
+        return evalScheem(expr[1], env)[0];
     case 'cdr':
-        return evalScheem(expr[1]).slice(1);
+        return evalScheem(expr[1], env).slice(1);
     case 'if':
         if (evalScheem(expr[1], env) === '#t') {
             return evalScheem(expr[2], env);
         }
         return evalScheem(expr[3], env);
     case 'let-one':
-        return evalScheem(expr[3], createEnv(expr[1], evalScheem(expr[2]), env));
+        var body = expr[3];
+        var variable = expr[1];
+        var value = evalScheem(expr[2], env);
+        //console.log("let-one (" + variable + " = " + value + ") (" + JSON.stringify(body) + ")");
+        return evalScheem(body, createEnv(variable, value, env));
     case 'lambda-one':
         var arg = expr[1];
         var body = expr[2];
@@ -98,16 +105,17 @@ var createEnv = function() { //varargs
     if (arguments.length % 2 != 1) {
         throw new Error("missing value for variable '" + arguments[arguments.length-1] + "'");
     }
-    var bindings = [];
+    var bindings = {};
     for(var i=0; i<arguments.length-1; i+=2) {
         var name = arguments[i];
         var value = arguments[i+1];
         bindings[name] = value;
     }
-    return {
+    var result = {
         bindings: bindings,
         outer: arguments[arguments.length-1]
     };
+    return result;
 };
 
 var lookup = function (env, variable) {
@@ -160,8 +168,9 @@ var add_binding = function() { // varargs
 };
 
 var call_function = function(argList, env) {
-    //console.log("call_function: " + JSON.stringify(argList));
+    //console.log("call_function: (" + JSON.stringify(argList) + ", " + JSON.stringify(env) + ")");
     var func = evalScheem(argList[0], env);
+    //console.log("func: " + JSON.stringify(func));
     //console.log("call_function on " + func.toString() + "(" + JSON.stringify(args) + ")");
     var args = []
     for (var i=1; i<argList.length; i++) {
@@ -174,6 +183,7 @@ var call_function = function(argList, env) {
 // should evaluate the body in the environment passed in here
 // not in the one of the caller
 var lambda = function(inputs, env) {
+    //console.log("lambda(" + JSON.stringify(inputs) + ", " + JSON.stringify(env) + ")");
     if (inputs.length != 2) { // argnames body
         throw new Error ("usage: lamdba (argnames) (body)");
     }
@@ -183,6 +193,7 @@ var lambda = function(inputs, env) {
     //console.log("lambda (" + JSON.stringify(argnames) + ") (" + JSON.stringify(body) + ")");
     return function(argList) {
         //console.log("called me with argList: " + JSON.stringify(argList));
+        //console.log("env is: " + JSON.stringify(env));
         var g = argList.length;
         if (argnames.length != g) {
             throw new Error("called function with invalid number of args");
