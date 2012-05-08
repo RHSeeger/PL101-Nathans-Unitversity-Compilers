@@ -2,18 +2,13 @@ if (typeof module !== 'undefined') {
     // In Node.js load required modules
     var assert = require('chai').assert;
     var expect = require('chai').expect;
-    var PEG = require('pegjs');
-    var fs = require('fs');
-    var evalScheem = require('../scheem').evalScheem;
-    var parse = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
+    var seval = require('../scheem').seval;
 } else {
     // In browser assume loaded by <script>
-    var parse = SCHEEM.parse;
     var assert = chai.assert;
     var expect = chai.expect;
 }
 
-var seval = function (code) { return evalScheem(parse(code), {}); }
 /*
  * TESTS
  */

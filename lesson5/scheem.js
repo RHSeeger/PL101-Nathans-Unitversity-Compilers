@@ -1,3 +1,13 @@
+if (typeof module !== 'undefined') {
+    // In Node.js load required modules
+    var PEG = require('pegjs');
+    var fs = require('fs');
+    var parse = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
+} else {
+    // In browser assume loaded by <script>
+    var parse = SCHEEM.parse;
+}
+
 var evalScheem = function (expr, env) {
     if (typeof env === "undefined") {
         throw new Error("called evalScheem with no env: " + JSON.stringify(expr));
@@ -12,44 +22,6 @@ var evalScheem = function (expr, env) {
     }
     // Look at head of list for operation
     switch (expr[0]) {
-    case '+':
-        return expr.slice(1).map(function (elem, index) {
-            return evalScheem(elem, env);
-        }).reduce(function (e1, e2) {
-            return e1 + e2;
-        }, 0);
-    case '-':
-        if (expr.length < 2) {
-            throw "incorrect number of arguments to procedure";
-        }
-        if (expr.slice(1).length === 1) {
-            return (- expr[1]);
-        }
-        return expr.slice(1).map(function (elem, index) {
-            return evalScheem(elem, env);
-        }).reduce(function (e1, e2) {
-            return e1 - e2;
-        });
-    case '*':
-        return expr.slice(1).map(function (elem, index) {
-            return evalScheem(elem, env);
-        }).reduce(function (e1, e2) {
-            return e1 * e2;
-        }, 1);
-    case '/':
-        switch(expr.slice(1).length) {
-        case 0:
-            return 1;
-        case 1:
-            return 1 / expr[1];
-        default:
-            return expr.slice(1).map(function (elem, index) {
-                return evalScheem(elem, env);
-            }).reduce(function (e1, e2) {
-                return e1 / e2;
-            });
-        }
-        break;
     case 'set!':
         update(env, expr[1], evalScheem(expr[2], env));
         return 0;
@@ -64,24 +36,6 @@ var evalScheem = function (expr, env) {
         return result;
     case 'quote':
         return expr[1];
-    case '=':
-        return (evalScheem(expr[1], env) === evalScheem(expr[2], env)) ? '#t' : '#f';
-    case '<':
-        return (evalScheem(expr[1], env) < evalScheem(expr[2], env)) ? '#t' : '#f';
-    case '>':
-        return (evalScheem(expr[1], env) > evalScheem(expr[2], env)) ? '#t' : '#f';
-    case 'cons':
-        return [evalScheem(expr[1],env)].concat(evalScheem(expr[2],env));
-    case 'car':
-        return evalScheem(expr[1], env)[0];
-    case 'cdr':
-        return evalScheem(expr[1], env).slice(1);
-    case 'list':
-        var result = [];
-        for(var i=1; i<expr.length; i++) {
-            result.push(evalScheem(expr[i], env));
-        }
-        return result;
     case 'if':
         if (evalScheem(expr[1], env) === '#t') {
             return evalScheem(expr[2], env);
@@ -213,6 +167,73 @@ var lambda = function(inputs, env) {
     }
 };
 
+var basicEnvironment = function() {
+    return createEnv(
+        "+", function(expr) {
+            return expr.reduce(function (e1, e2) {
+                return e1 + e2;
+            }, 0);
+        },
+
+        '-', function(expr) {
+            if (expr.length < 1) {
+                throw "incorrect number of arguments to procedure";
+            }
+            if (expr.length === 1) {
+                return (- expr[0]);
+            }
+            return expr.reduce(function (e1, e2) {
+                return e1 - e2;
+            });
+        },
+        '*', function(expr) {
+            return expr.reduce(function (e1, e2) {
+                return e1 * e2;
+            }, 1);
+        }, 
+        '/', function(expr) {
+            switch(expr.length) {
+            case 0:
+                return 1;
+            case 1:
+                return 1 / expr[0];
+            default:
+                return expr.reduce(function (e1, e2) {
+                    return e1 / e2;
+                });
+            }
+        },
+
+        '=', function(expr) {
+            return (expr[0] === expr[1]) ? '#t' : '#f';
+        },
+        '<', function(expr) {
+            return (expr[0] < expr[1]) ? '#t' : '#f';
+        },
+        '>', function(expr) {
+            return (expr[0] > expr[1]) ? '#t' : '#f';
+        },
+        'cons', function(expr) {
+            return [expr[0]].concat(expr[1]);
+        },
+        'car', function(expr) {
+            return expr[0][0];
+        },
+        'cdr', function(expr) {
+            return expr[0].slice(1);
+        },
+        'list', function(expr) {
+            return expr;
+        },
+
+        {}
+    );
+}
+
+var seval = function (code) { 
+    return evalScheem(parse(code), basicEnvironment()); 
+}
+
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {
     module.exports.evalScheem = evalScheem;
@@ -220,5 +241,6 @@ if (typeof module !== 'undefined') {
     module.exports.createEnv = createEnv;
     module.exports.update = update;
     module.exports.add_binding = add_binding;
+    module.exports.seval = seval;
 }
 
