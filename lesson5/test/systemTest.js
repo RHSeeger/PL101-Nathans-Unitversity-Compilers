@@ -75,6 +75,27 @@ suite("SYSTEM TESTS", function() {
         });
     });
 
+    suite('eq?', function() {
+        test('empty list', function() {
+            assert.deepEqual(seval("(eq? (list) '())"), "#t");
+        });
+        test('empty list false', function() {
+            assert.deepEqual(seval("(eq? (list a b c) '())"), "#f");
+        });
+        test('non-empty list true', function() {
+            assert.deepEqual(seval("(eq? '(a b) '(a b))"), "#t");
+        });
+        test('non-empty list false', function() {
+            assert.deepEqual(seval("(eq? '(a b) '(b a))"), "#f");
+        });
+        test('non-list true', function() {
+            assert.deepEqual(seval("(eq? 'a 'a)"), "#t");
+        });
+        test('non-list false', function() {
+            assert.deepEqual(seval("(eq? 'a 'b)"), "#f");
+        });
+    });
+
     suite('=', function() {
         test('true', function() {
             assert.deepEqual(seval("(= 2 2)"), "#t");

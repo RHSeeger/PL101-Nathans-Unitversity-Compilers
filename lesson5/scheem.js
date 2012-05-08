@@ -8,6 +8,17 @@ if (typeof module !== 'undefined') {
     var parse = SCHEEM.parse;
 }
 
+// Array.prototype.compare = function(testArr) {
+//     if (this.length != testArr.length) return false;
+//     for (var i = 0; i < testArr.length; i++) {
+//         if (this[i].compare) { 
+//             if (!this[i].compare(testArr[i])) return false;
+//         }
+//         if (this[i] !== testArr[i]) return false;
+//     }
+//     return true;
+// }
+
 var evalScheem = function (expr, env) {
     if (typeof env === "undefined") {
         throw new Error("called evalScheem with no env: " + JSON.stringify(expr));
@@ -203,7 +214,29 @@ var basicEnvironment = function() {
                 });
             }
         },
-
+        'eq?', function(expr) {
+            var elem1 = expr[0];
+            var elem2 = expr[1];
+            var isArray = function(elem) {
+                return (Object.prototype.toString.call(elem) === '[object Array]');
+            }
+            var compareem = function(elem1, elem2) {
+                if (isArray(elem1) && isArray(elem2)) {
+                    if (elem1.length != elem2.length) return false;
+                    for (var i = 0; i < elem1.length; i++) {
+                        if (elem1[i].compare) { 
+                            if (!elem1[i].compare(elem2[i])) return false;
+                        }
+                        if (elem1[i] !== elem2[i]) return false;
+                    }
+                    return true;
+                } else if (typeof elem1 === Array || typeof elem2 === Array) {
+                    return false;
+                }
+                return (elem1 === elem2);
+            }
+            return (compareem(expr[0], expr[1]) ? "#t" : "#f");
+        },
         '=', function(expr) {
             return (expr[0] === expr[1]) ? '#t' : '#f';
         },
