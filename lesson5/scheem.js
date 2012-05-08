@@ -242,5 +242,6 @@ if (typeof module !== 'undefined') {
     module.exports.update = update;
     module.exports.add_binding = add_binding;
     module.exports.seval = seval;
+    module.exports.basicEnvironment = basicEnvironment;
 }
 
