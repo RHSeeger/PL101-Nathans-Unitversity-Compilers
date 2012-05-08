@@ -201,19 +201,6 @@ suite("SYSTEM TESTS", function() {
                                                     (+ x (factorial (- x 1))))))    \
                                         (factorial 4))"), 10); 
         });
-        test("fib", function() {
-            assert.deepEqual(seval("(begin                              \
-                                        (define fib                     \
-                                            (lambda (x)                 \
-                                                (if (< x 2)             \
-                                                    x                   \
-                                                    (+ (fib (- x 1))    \
-                                                       (fib (- x 2)))   \
-                                                )                       \
-                                            )                           \
-                                        )                               \
-                                        (fib 10))"), 55); 
-        });
     });
     
     suite("section 7 : multiple args : lambda", function() {
@@ -258,6 +245,40 @@ suite("SYSTEM TESTS", function() {
                             (lf10)                                                          \
                             (lf100))";
             assert.deepEqual(seval(code), 110);
+        });
+    });
+
+    suite("use cases", function() {
+        test("fib", function() {
+            assert.deepEqual(seval("(begin                              \
+                                        (define fib                     \
+                                            (lambda (x)                 \
+                                                (if (< x 2)             \
+                                                    x                   \
+                                                    (+ (fib (- x 1))    \
+                                                       (fib (- x 2)))   \
+                                                )                       \
+                                            )                           \
+                                        )                               \
+                                        (fib 10))"), 55); 
+        });
+        test("reverse", function() {
+            assert.deepEqual(seval("(begin                                              \
+                                        (define reverse                                 \
+                                            (lambda (x)                                 \
+                                                (begin                                  \
+                                                    (define ireverse                    \
+                                                        (lambda (out in)                \
+                                                            (if (eq? in '())            \
+                                                                out                     \
+                                                                (ireverse               \
+                                                                    (cons (car in) out) \
+                                                                    (cdr in)))))        \
+                                                    (ireverse '() x)                    \
+                                                )                                       \
+                                            )                                           \
+                                        )                                               \
+                                    (reverse '(a b c d e f)))"), ["f", "e", "d", "c", "b", "a"]);
         });
     });
 });
