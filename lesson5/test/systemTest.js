@@ -4,7 +4,7 @@ if (typeof module !== 'undefined') {
     var expect = require('chai').expect;
     var PEG = require('pegjs');
     var fs = require('fs');
-    var scheem = require('../scheem');
+    var evalScheem = require('../scheem').evalScheem;
     var parse = PEG.buildParser(fs.readFileSync('scheem.peg', 'utf-8')).parse;
 } else {
     // In browser assume loaded by <script>
@@ -13,7 +13,7 @@ if (typeof module !== 'undefined') {
     var expect = chai.expect;
 }
 
-var seval = function (code) { return scheem.evalScheem(parse(code), {}); }
+var seval = function (code) { return evalScheem(parse(code), {}); }
 /*
  * TESTS
  */
