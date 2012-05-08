@@ -10,7 +10,7 @@ whitespace =
     [ \t\n]
 
 validchar
-    = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+    = [0-9a-zA-Z_?!+\-<=>@#$%^&*/.]
 
 integer = chars:[0-9]+
         { return parseInt(chars.join("")); }

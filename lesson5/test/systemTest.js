@@ -75,6 +75,39 @@ suite("SYSTEM TESTS", function() {
         });
     });
 
+    suite('=', function() {
+        test('true', function() {
+            assert.deepEqual(seval("(= 2 2)"), "#t");
+        });
+        test('false', function() {
+            assert.deepEqual(seval("(= 2 4)"), "#f");
+        });
+    });
+
+    suite('<', function() {
+        test('true', function() {
+            assert.deepEqual(seval("(< 2 3)"), "#t");
+        });
+        test('false, gt', function() {
+            assert.deepEqual(seval("(< 2 1)"), "#f");
+        });
+        test('false, eq', function() {
+            assert.deepEqual(seval("(< 2 2)"), "#f");
+        });
+    });
+
+    suite('>', function() {
+        test('true', function() {
+            assert.deepEqual(seval("(> 3 2)"), "#t");
+        });
+        test('false, gt', function() {
+            assert.deepEqual(seval("(> 1 2)"), "#f");
+        });
+        test('false, eq', function() {
+            assert.deepEqual(seval("(> 2 2)"), "#f");
+        });
+    });
+
     suite("let-one", function() {
         test('Variable reference in environment', function() {
             assert.deepEqual(seval("(let-one x 2 x)"), 2);
@@ -146,6 +179,19 @@ suite("SYSTEM TESTS", function() {
                                                     1                               \
                                                     (+ x (factorial (- x 1))))))    \
                                         (factorial 4))"), 10); 
+        });
+        test("fib", function() {
+            assert.deepEqual(seval("(begin                              \
+                                        (define fib                     \
+                                            (lambda (x)                 \
+                                                (if (< x 2)             \
+                                                    x                   \
+                                                    (+ (fib (- x 1))    \
+                                                       (fib (- x 2)))   \
+                                                )                       \
+                                            )                           \
+                                        )                               \
+                                        (fib 10))"), 55); 
         });
     });
     
