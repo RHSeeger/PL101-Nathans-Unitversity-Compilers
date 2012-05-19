@@ -40,6 +40,16 @@ suite("PARSER TESTS>", function() {
                 body:[ { tag:":=", left:"y", right:1 } ]  
             });
         });
+        test('define', function() {
+            assert.deepEqual(parse("define foo(x, y) {\n}", 'statements'), [
+                {
+                    "tag": "define",
+                    "name": "foo",
+                    "args": [ "x", "y" ],
+                    "body": []
+                }
+            ]);
+        });
     });
 
     suite("Top Level>", function() {
