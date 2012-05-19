@@ -1,62 +1,21 @@
-primary
-    = number
-    / v:identifier "(" ws ")"
-        { return {tag:"call", name:v, args:[]}; }
-    / v:identifier "(" ws args:arglist ws ")"
-        { return {tag:"call", name:v, args:args}; }
-    / v:identifier
-        { return {tag:"ident", name:v}; }
-    / "(" ws expr:expression ws ")"
-        { return expr; }
-
-number_frac
-    = "." chars:[0-9]*
-        { return "." + chars.join(''); }
-
-number
-    = sign:[-]? chars:[0-9]+ frac:number_frac?
-        { return parseFloat(sign + chars.join('') + frac); }
-
-validfirstchar
-    = [a-zA-Z_]
-
-validchar
-    = [0-9a-zA-Z_]
-
-identifier
-    = firstchar:validfirstchar chars:validchar*
-        { return firstchar + chars.join(''); }
+start = statement
 
 ws = [ \t\n]*
 
-expression
-    = expr:comparative
-        { return expr; }
+expression = "EXPR"
 
-comp_op = "<=" / ">=" / "!=" / "==" / "<" / ">"
+identifier
+    = chars:[a-z]+
+        { return chars.join(''); }
 
-comparative
-    = left:additive ws op:comp_op ws right:comparative
-        { return {tag: op, left:left, right:right}; }
-    / additive
+statements = statement*
 
-additive_op = "+" / "-"
-
-additive
-    = left:multiplicative ws op:additive_op ws right:additive
-        { return {tag:op, left:left, right:right}; }
-    / multiplicative
-
-mult_op = "*" / "/"
-
-multiplicative
-    = left:primary ws op:mult_op ws right:multiplicative
-        { return {tag:op, left:left, right:right}; }
-    / primary
-
-comma_expression = "," ws expr:expression
-        { return expr; }
-
-arglist
-    = first:expression rest:comma_expression*
-        { return [first].concat(rest); }
+statement
+    = v:identifier ":=" expr:expression ";"
+        { return { tag:":=", left:v, right:expr }; }
+      / command:"var" ws name:identifier ";"
+        { return { tag: "var", name:name }; }
+      / command:"if" ws "(" expr:expression ")" ws "{" ws body:statements ws "}"
+        { return { tag: "if", expr: expr, body: body } }
+      / command:"repeat" ws "(" expr:expression ")" ws "{" ws body:statements ws "}"
+        { return { tag: "repeat", expr: expr, body: body } }

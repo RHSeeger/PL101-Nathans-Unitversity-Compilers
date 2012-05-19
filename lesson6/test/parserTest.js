@@ -17,27 +17,26 @@ if (typeof module !== 'undefined') {
  */
 
 suite("PARSER TESTS", function() {
-    suite('stage 2', function() {
-        test('parse 42', function() {
-            assert.deepEqual(parse("42"), 42,    "parse 42");
-        });
-        test('parse -42', function() {
-            assert.deepEqual(parse("-42"), -42,    "parse -42");
-        });
-        test('parse -10.5', function() {
-            assert.deepEqual(parse("-10.5"), -10.5,    "parse -10.5");
-        });
+    test('parse x:=EXPR', function() {
+        assert.deepEqual(parse('x:=EXPR;'),
+                         { tag:":=", left:"x", right:"EXPR" },
+                         'parse x:=EXPR');
     });
-
-    suite('stage 3', function() {
-        test('parse 42', function() {
-            assert.deepEqual(parse("42"), 42,    "parse 42");
-        });
-        test('parse x', function() {
-            assert.deepEqual(parse("x"), { tag:"ident", name:"x" },    "parse x");
-        });
-        test('parse abc', function() {
-            assert.deepEqual(parse("abc"), { tag:"ident", name:"abc" },    "parse abc");
-        });
+    test('parse var x;', function() {
+        assert.deepEqual(parse('var x;'),
+                         { tag:"var", name:"x" },
+                         'parse var x;');
+    });
+    test('parse if(EXPR){x:=EXPR;}', function() {
+        assert.deepEqual(parse('if(EXPR){x:=EXPR;}'),
+                         { tag:"if", expr:"EXPR", body: [
+                             { tag:":=", left:"x", right:"EXPR" } ] },
+                         'parse if(EXPR){x:=EXPR;}');
+    });
+    test('parse repeat(EXPR){x:=EXPR;}', function() {
+        assert.deepEqual(parse('repeat(EXPR){x:=EXPR;}'),
+                         { tag:"repeat", expr:"EXPR", body: [
+                             { tag:":=", left:"x", right:"EXPR" } ] },
+                         'parse repeat(EXPR){x:=EXPR;}');
     });
 });
