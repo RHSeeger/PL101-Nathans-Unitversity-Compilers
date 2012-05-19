@@ -1,0 +1,21 @@
+start = statement
+
+ws = [ \t\n]*
+
+expression = "EXPR"
+
+identifier
+    = chars:[a-z]+
+        { return chars.join(''); }
+
+statements = statement*
+
+statement
+    = v:identifier ":=" expr:expression ";"
+        { return { tag:":=", left:v, right:expr }; }
+      / command:"var" ws name:identifier ";"
+        { return { tag: "var", name:name }; }
+      / command:"if" ws "(" expr:expression ")" ws "{" ws body:statements ws "}"
+        { return { tag: "if", expr: expr, body: body } }
+      / command:"repeat" ws "(" expr:expression ")" ws "{" ws body:statements ws "}"
+        { return { tag: "repeat", expr: expr, body: body } }
