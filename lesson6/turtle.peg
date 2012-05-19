@@ -1,0 +1,20 @@
+start
+    = number
+
+number_frac
+    = "." chars:[0-9]*
+        { return "." + chars.join(''); }
+
+number
+    = sign:[-]? chars:[0-9]+ frac:number_frac?
+        { return parseFloat(sign + chars.join('') + frac); }
+
+validfirstchar
+    = [a-zA-Z_]
+
+validchar
+    = [0-9a-zA-Z_]
+
+identifier
+    = firstchar:validfirstchar chars:validchar*
+        { return firstchar + chars.join(''); }
