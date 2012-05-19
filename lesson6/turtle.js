@@ -9,7 +9,7 @@ if (typeof module !== 'undefined') {
 }
 
 var evalExpr = function (expr, env) {
-    // console.log("\neval: " + JSON.stringify(expr) + "\n\t" + JSON.stringify(env));
+    // console.log("\nevalExpr: " + JSON.stringify(expr) + "\n\t" + JSON.stringify(env));
     // Numbers evaluate to themselves
     if (typeof expr === 'number') {
         return expr;
@@ -31,7 +31,51 @@ var lookup = function (env, v) {
     return lookup(env.outer, v);
 };
 
+var evalStatement = function (stmt, env) {
+    // console.log("\nevalStatement: " + JSON.stringify(stmt) + "\n\t" + JSON.stringify(env));
+    var val;
+    // Statements always have tags
+    switch(stmt.tag) {
+        // A single expression
+    case 'ignore':
+        // Just evaluate expression
+        return evalExpr(stmt.body, env);
+        // Declare new variable
+    case 'var':
+        // New variable gets default value of 0
+        add_binding(env, stmt.name, 0);
+        return 0;
+    case ':=':
+        // Evaluate right hand side
+        val = evalExpr(stmt.right, env);
+        update(env, stmt.left, val);
+        return val;
+    case 'if':
+        if(evalExpr(stmt.expr, env)) {
+            val = evalStatements(stmt.body, env);
+        }
+        return val;
+    case 'repeat':
+        var numTimes = evalExpr(stmt.expr, env);
+        // console.log("repeating " + numTimes + " times");
+        for(var i=0; i<numTimes; i++) {
+            val = evalStatements(stmt.body, env);
+        }
+        return val;
+    }
+};
+
+var evalStatements = function (seq, env) {
+    var i;
+    var val = undefined;
+    for(i = 0; i < seq.length; i++) {
+        val = evalStatement(seq[i], env);
+    }
+    return val;
+};
+
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {
     module.exports.evalExpr = evalExpr;
+    module.exports.evalStatement = evalStatement;
 }

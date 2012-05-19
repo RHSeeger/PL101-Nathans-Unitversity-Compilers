@@ -2,7 +2,9 @@ if (typeof module !== 'undefined') {
     // In Node.js load required modules
     var assert = require('chai').assert;
     var expect = require('chai').expect;
-    var evalExpr = require('../turtle').evalExpr;
+    var turtle = require('../turtle');
+    var evalExpr = turtle.evalExpr;
+    var evalStatement = turtle.evalStatement;
 } else {
     // In browser assume loaded by <script>
     var assert = chai.assert;
@@ -30,6 +32,15 @@ suite("EVALUATOR TESTS", function() {
         test('x+y', function() {
             var env = { bindings: { x:2, y:3 }, outer: { } };
             assert.deepEqual(evalExpr({tag:"+", left:{ tag:"ident", name:"x" }, right:{ tag:"ident", name:"y" }}, env), 5, 'x+y'); 
+        });
+    });
+
+    suite("step 7", function() {
+        test('3', function() {
+            assert.deepEqual(evalStatement({tag:"ignore", body:3}, {}), 3);
+        });
+        test('repeat(5){3;}', function() {
+            assert.deepEqual(evalStatement({tag:"repeat", expr:5, body: [{tag:"ignore", body:3}]}, {}), 3);
         });
     });
 });
