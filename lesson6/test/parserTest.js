@@ -17,7 +17,7 @@ if (typeof module !== 'undefined') {
  */
 
 suite("PARSER TESTS", function() {
-    suite('stage2', function() {
+    suite('stage 2', function() {
         test('parse 42', function() {
             assert.deepEqual(parse("42"), 42,    "parse 42");
         });
@@ -27,10 +27,17 @@ suite("PARSER TESTS", function() {
         test('parse -10.5', function() {
             assert.deepEqual(parse("-10.5"), -10.5,    "parse -10.5");
         });
-        test('dont parse boo', function() {
-            expect(function () {
-                parse("boo");
-            }).to.throw();
+    });
+
+    suite('stage 3', function() {
+        test('parse 42', function() {
+            assert.deepEqual(parse("42"), 42,    "parse 42");
+        });
+        test('parse x', function() {
+            assert.deepEqual(parse("x"), { tag:"ident", name:"x" },    "parse x");
+        });
+        test('parse abc', function() {
+            assert.deepEqual(parse("abc"), { tag:"ident", name:"abc" },    "parse abc");
         });
     });
 });
