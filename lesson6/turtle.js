@@ -62,6 +62,22 @@ var evalStatement = function (stmt, env) {
             val = evalStatements(stmt.body, env);
         }
         return val;
+    case 'define':
+        // name args body
+        var new_func = function() {
+            // This function takes any number of arguments
+            var i;
+            var new_env;
+            var new_bindings;
+            new_bindings = { };
+            for(i = 0; i < stmt.args.length; i++) {
+                new_bindings[stmt.args[i]] = arguments[i];
+            }
+            new_env = { bindings: new_bindings, outer: env };
+            return evalStatements(stmt.body, new_env);
+        };
+        add_binding(env, stmt.name, new_func);
+        return 0;
     }
 };
 
@@ -72,6 +88,30 @@ var evalStatements = function (seq, env) {
         val = evalStatement(seq[i], env);
     }
     return val;
+};
+
+var add_binding = function() { // varargs
+    var env = arguments[0];
+    //console.log("env = " + JSON.stringify(env));
+    if (!(env.hasOwnProperty('bindings'))) {
+        //console.log("Initializing env.bindings");
+        env.bindings = {}
+    }
+    if (!(env.hasOwnProperty('outer'))) {
+        //console.log("Initializing env.outer");
+        env.outer = {}
+    }
+    if (arguments.length % 2 != 1) {
+        throw new Error("missing value for variable '" + arguments[arguments.length-1] + "'");
+    }
+    for(var i=1; i<arguments.length; i+=2) {
+        var variable = arguments[i];
+        var value = arguments[i+1];
+        if (env.bindings.hasOwnProperty(variable)) {
+            throw new Error("variable " + variable + " already defined");
+        }
+        env.bindings[variable] = value;
+    }
 };
 
 // If we are used as Node module, export evalScheem
