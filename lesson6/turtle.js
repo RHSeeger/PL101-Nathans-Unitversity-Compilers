@@ -9,6 +9,12 @@ if (typeof module !== 'undefined') {
 }
 
 var evalExpr = function (expr, env) {
+    if (typeof expr === 'undefined') {
+        throw new Error("expr was undefined, why?");
+    }
+    if (typeof env === 'undefined') {
+        throw new Error("env was undefined, why?");
+    }
     // console.log("\nevalExpr: " + JSON.stringify(expr) + "\n\t" + JSON.stringify(env));
     // Numbers evaluate to themselves
     if (typeof expr === 'number') {
@@ -17,10 +23,23 @@ var evalExpr = function (expr, env) {
     // Look at tag to see what to do
     switch(expr.tag) {
     case '+':
-        return evalExpr(expr.left, env) +  evalExpr(expr.right, env);
+        return evalExpr(expr.left, env) + evalExpr(expr.right, env);
+    case '-':
+        return evalExpr(expr.left, env) - evalExpr(expr.right, env);
     case 'ident':
-        return evalExpr(lookup(env, expr.name), env);
-    }
+        return lookup(env, expr.name);
+    case 'call':
+        var func = lookup(env, expr.name);
+        // Evaluate arguments to pass
+        var ev_args = [];
+        var i = 0;
+        for(i = 0; i < expr.args.length; i++) {
+            ev_args[i] = evalExpr(expr.args[i], env);
+        }
+        return func.apply(null, ev_args);
+    default:
+        throw new Error("Undefined expression type " + expr.tag);
+    } 
 };
 
 var lookup = function (env, v) {
@@ -91,14 +110,15 @@ var evalStatements = function (seq, env) {
 };
 
 var add_binding = function() { // varargs
+    // alert("Adding bindings (" + arguments.length + ") : " + JSON.stringify(arguments));
     var env = arguments[0];
     //console.log("env = " + JSON.stringify(env));
     if (!(env.hasOwnProperty('bindings'))) {
-        //console.log("Initializing env.bindings");
+        // alert("Initializing env.bindings");
         env.bindings = {}
     }
     if (!(env.hasOwnProperty('outer'))) {
-        //console.log("Initializing env.outer");
+        // alert("Initializing env.outer");
         env.outer = {}
     }
     if (arguments.length % 2 != 1) {
@@ -107,15 +127,31 @@ var add_binding = function() { // varargs
     for(var i=1; i<arguments.length; i+=2) {
         var variable = arguments[i];
         var value = arguments[i+1];
+        // alert("Adding binding internal: " + variable + " = " + JSON.stringify(value));
         if (env.bindings.hasOwnProperty(variable)) {
             throw new Error("variable " + variable + " already defined");
         }
         env.bindings[variable] = value;
     }
+    //alert("New env: " + JSON.stringify(env.bindings));
+};
+
+var update = function(env, variable, value) {
+    for (var e = env; e !== null; e = e.outer) {
+        if (!(e.hasOwnProperty("bindings"))) {
+            throw new Error("undefined variable: " + variable);
+        }
+        if (e.bindings.hasOwnProperty(variable)) {
+            e.bindings[variable] = value;
+            return value;
+        }
+    }
+    throw "undefined variable: " + variable;
 };
 
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {
     module.exports.evalExpr = evalExpr;
     module.exports.evalStatement = evalStatement;
+    module.exports.add_binding = add_binding;
 }

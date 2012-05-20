@@ -5,6 +5,7 @@ if (typeof module !== 'undefined') {
     var turtle = require('../turtle');
     var evalExpr = turtle.evalExpr;
     var evalStatement = turtle.evalStatement;
+    var add_binding = turtle.add_binding;
 } else {
     // In browser assume loaded by <script>
     var assert = chai.assert;
@@ -43,4 +44,19 @@ suite("EVALUATOR TESTS", function() {
             assert.deepEqual(evalStatement({tag:"repeat", expr:5, body: [{tag:"ignore", body:3}]}, {}), 3);
         });
     });
+
+    suite("internal", function() {
+        test('binding variable', function() {
+            var env = {};
+            add_binding(env, 'x', 1);
+            assert.deepEqual(env, {bindings: {x:1}, outer: {}});
+        });
+        test('binding functions', function() {
+            var f = function(a,b) { return a+b; };
+            var env = {};
+            add_binding(env, 'myfunc', f);
+            assert.deepEqual(env, { bindings: {myfunc:f}, outer: {} });
+        });
+    });
+
 });

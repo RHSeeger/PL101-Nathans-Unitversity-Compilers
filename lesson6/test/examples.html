@@ -1,10 +1,12 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Example Programs</title>
+    <title>Example Programs For Lesson 6</title>
     <script src="http://nathansuniversity.com/js/jquery-1.7.1.min.js"></script>
     <script src="../parser.js"></script>
-    <script src="../scheem.js"></script>
+    <script src="../turtle.js"></script>
+    <script src="http://nathansuniversity.com/js/raphael-min.js"></script>
+    <script src="../tortoise.js"></script>
     <style type="text/css">
       .code.source { width: 100%; }
       .code.answer { width: 100%; height: 2em; }
@@ -13,112 +15,69 @@
   <body>
 
     <div class="example">
-      <h3>Factorial</h3>
-      <textarea class="code source" id="factorial" readonly="readonly">
-(begin 
-    (define factorial 
-        (lambda (x)
-            (if (= x 1) 
-                1
-                (* x (factorial (- x 1))))))
-    (factorial 10))
+      <h3>Square</h3>
+      <textarea class="code source" id="square" readonly="readonly">
+repeat(4) {
+    left(90);
+    forward(100);
+}
       </textarea>
-      <textarea class="code answer" id="factorial-answer" readonly="readonly"></textarea>
+      <div class="code display" id="square-display"></div>
     </div>
 
     <div class="example">
-      <h3>Fibonacci</h3>
-      <textarea class="code source" id="fib" readonly="readonly">
-(begin
-    (define fib
-        (lambda (x)
-            (if (&lt; x 2)
-                 x
-                 (+ (fib (- x 1)) 
-                    (fib (- x 2)))
-            )
-        )
-    )
-    (fib 10))
+      <h3>Define</h3>
+      <textarea class="code source" id="define" readonly="readonly">
+define square(size) {
+    repeat(4) {
+        left(90);
+        forward(size);
+    }
+}
+var size;
+size := 100;
+left(45);
+repeat(20) {
+    square(size);
+    size := size - 5;
+    left(45);
+}
       </textarea>
-      <textarea class="code answer" id="fib-answer" readonly="readonly"></textarea>
+      <div class="code display" id="define-display"></div>
     </div>
-    
-    <div class="example">
-      <h3>Reverse a List</h3>
-      <textarea class="code source" id="reverse" readonly="readonly">
-(begin
-    (define reverse
-        (lambda (x)
-            (begin
-                (define ireverse
-                    (lambda (out in)
-                        (if (eq? in '())
-                            out
-                            (ireverse (cons (car in) out) (cdr in)))))
-                (ireverse '() x)
-            )
-        )
-    )
-    (reverse '(a b c d e f)))
-      </textarea>
-      <textarea class="code answer" id="reverse-answer" readonly="readonly"></textarea>
-    </div>
-
-    <div class="example">
-      <h3>Find in List</h3>
-      <textarea class="code source" id="find-in-list" readonly="readonly">
-(begin
-    (define find-in-list
-        (lambda (item in-list)
-            (if (eq? in-list '())
-                #f
-                (if (eq? item (car in-list))
-                    0
-                    (let-one
-                        index (find-in-list item (cdr in-list))
-                        (if (eq? index #f)
-                            #f
-                            (+ 1 index)))))))
-    (find-in-list 'd '(a b c d e f)))
-      </textarea>
-      <textarea class="code answer" id="find-in-list-answer" readonly="readonly"></textarea>
-    </div>
-<!--
-    <div class="example">
-      <h3></h3>
-      <textarea class="code source" id="" readonly="readonly">
-      </textarea>
-      <textarea class="code answer" id="-answer" readonly="readonly"></textarea>
-    </div>
-
-    <div class="example">
-      <h3></h3>
-      <textarea class="code source" id="" readonly="readonly">
-      </textarea>
-      <textarea class="code answer" id="-answer" readonly="readonly"></textarea>
-    </div>
-
-    <div class="example">
-      <h3></h3>
-      <textarea class="code source" id="" readonly="readonly">
-      </textarea>
-      <textarea class="code answer" id="-answer" readonly="readonly"></textarea>
-    </div>
--->
 
 
   </body>
 
   <script>
     $(".code.source").each(function(index, element) {
-        $(this).text($(this).text().trim());
+        var source = $(this).text().trim()
+        $(this).text(source);
         // Change the height
         var newlines = $(this).text().split("\n").length;
         $(this).css("height", ((1+newlines) * 1.2) + "em");
         // Fill in the values
-        var id = $(this).attr("id") + "-answer";
-        $("#" + id).text(JSON.stringify(seval($(this).text())));
+        var id = $(this).attr("id") + "-display";
+        try {
+            var myTurtle = new Turtle(id);
+            var env = { };
+            add_binding(env, 'forward', function(d) { myTurtle.forward(d); },
+                             'right', function(a) { myTurtle.right(a); },
+                             'left', function(a) { myTurtle.left(a); },
+                             'home', function() { myTurtle.home(); });
+            myTurtle.clear();
+            var parsed = TURTLE.parse(source);
+            try {
+                var result = evalStatements(parsed, env);
+            } catch(e) {
+                alert("eval error: " + e);
+    alert("stack trace: " + JSON.stringify(e.stack));
+document.write(e.stack);
+                console.log('Eval Error: ' + e);
+            }
+        } catch(e) {
+            console.log('Parse Error: ' + e);
+        }
     });
   </script>
 
