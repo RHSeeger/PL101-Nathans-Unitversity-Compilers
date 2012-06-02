@@ -1,28 +1,21 @@
 var assert = require('chai').assert;
 var expect = require('chai').expect;
 var code = require('../step5');
-var evalTwo = code.evalTwo;
+var evalDiv = code.evalDiv;
+var thunkValue = code.thunkValue;
+var trampoline = code.trampoline;
 
-suite("STEP 5>", function() {
-    var env = { bindings: { x: 3, y: 4 }, outer: null };
-    test('x=7 and y=10', function() {
-        evalTwo(['set!', 'x', 7], ['set!', 'y', 10], env);
-        assert.deepEqual(env, { bindings: { x: 7, y: 10 }, outer: null });
+suite("STEP 6>", function() {
+    test('1 / 2', function() {
+        assert.deepEqual(trampoline(evalDiv(1, 2, {}, thunkValue, thunkValue)), 0.5);
     });
-    test('x=1+1 and y=11', function() {
-        evalTwo(['set!', 'x', ['+', 1, 1]], ['set!', 'y', 11], env);
-        assert.deepEqual(env, { bindings: { x: 2, y: 11 }, outer: null });
+    test('exception in top', function() {
+        assert.deepEqual(trampoline(evalDiv(['throw'], 2, {}, thunkValue, thunkValue)), 'EXCEPTION!');
     });
-    test('x=13 and y=2+3', function() {
-        evalTwo(['set!', 'x', 13], ['set!', 'y', ['+', 2, 3]], env);
-        assert.deepEqual(env, { bindings: { x: 13, y: 5 }, outer: null });
+    test('exception in bottom', function() {
+        assert.deepEqual(trampoline(evalDiv(1, ['throw'], {}, thunkValue, thunkValue)), 'EXCEPTION!');
     });
-    test('x=15 versus x=10+2', function() {
-        evalTwo(['set!', 'x', 15], ['set!', 'x', ['+', 10, 2]], env);
-        assert.deepEqual(env, { bindings: { x: 12, y: 5 }, outer: null });
-    });
-    test('x=3+5 versus x=17', function() {
-        evalTwo(['set!', 'x', ['+', 3, 5]], ['set!', 'x', 17], env);
-        assert.deepEqual(env, { bindings: { x: 8, y: 5 }, outer: null });
+    test('division by zero exception', function() {
+        assert.deepEqual(trampoline(evalDiv(1, 0, {}, thunkValue, thunkValue)), 'EXCEPTION!');
     });
 });
