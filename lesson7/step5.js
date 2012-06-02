@@ -76,7 +76,55 @@ var sum = {
     }
 }
 
+var ljoin = {
+    // normal recursive
+    normal : function(x, joinStr) {
+        if (x.length === 0) {
+            return "";
+        } else if(x.length === 1) {
+            return x[0];
+        } else {
+            return "" + x[0] + joinStr + this.normal(x.slice(1), joinStr);
+        }
+    },
+
+    // continuation passing style
+    cps : function(n, joinStr) {
+        var t = function(x, cont) {
+            if (x.length === 0) {
+                return cont("");
+            } else if(x.length === 1) {
+                return cont(x[0]);
+            } else {
+                var new_cont = function(y) {
+                    return cont(x[0] + joinStr + y);
+                }
+                return t(x.slice(1), new_cont);
+            }
+        }
+        return t(n, result);
+    },
+    
+    // cps - thunked
+    thunked : function(n, joinStr) {
+        var t = function(x, cont) {
+            if (x.length === 0) {
+                return thunk(cont, [""]);
+            } else if(x.length === 1) {
+                return thunk(cont, [x[0]]);;
+            } else {
+                var new_cont = function (v) {
+                    return thunk(cont, [x[0] + joinStr + v]);
+                };
+                return thunk(t, [x.slice(1), new_cont]);
+            }
+        }
+        return trampoline(t(n, thunkValue));
+    }
+}
+
 // If we are used as Node module, export evalScheem
 if (typeof module !== 'undefined') {
     module.exports.sum = sum;
+    module.exports.ljoin = ljoin;
 }
