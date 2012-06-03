@@ -21,25 +21,25 @@ var evalExpr = function(expr, env) {
     return turtle.trampoline(turtle.evalExpr(expr, env, turtle.thunkValue, failureCont));
 }
 
+var evalStatement = function(expr, env) {
+    return turtle.trampoline(turtle.evalStatement(expr, env, turtle.thunkValue, failureCont));
+}
+
 /*
  * TESTS
  */
 
 suite("EVALUATOR TESTS", function() {
     suite("expressions", function() {
-        test('number', function() {
-            var env = { bindings: { }, outer: { } };
-            assert.deepEqual(evalExpr(3, env), 3);
-        });
-        test('3+5', function() {
+        test('+', function() {
             var env = { bindings: { x:2, y:3 }, outer: { } };
             assert.deepEqual(evalExpr({tag:"+", left:3, right:5}, env), 8);
         });
-        test('3-5', function() {
+        test('-', function() {
             var env = { bindings: { x:2, y:3 }, outer: { } };
             assert.deepEqual(evalExpr({tag:"-", left:3, right:5}, env), -2);
         });
-        test('x', function() {
+        test('ident', function() {
             var env = { bindings: { x:2, y:3 }, outer: { } };
             assert.deepEqual(evalExpr({ tag:"ident", name:"x"}, env), 2, 'x');
         });
@@ -51,6 +51,26 @@ suite("EVALUATOR TESTS", function() {
             var env = { bindings: { x:2, y:3 }, outer: { } };
             assert.deepEqual(evalExpr({tag:"+", left:{ tag:"ident", name:"x" }, right:{ tag:"ident", name:"y" }}, env), 5); 
         });
+    });
+
+    suite("statements", function() {
+        test('ignore', function() {
+            var env = { bindings: { }, outer: { } };
+            assert.deepEqual(evalStatement({tag:"ignore", body:3}, env), 3);
+        });
+
+        test('var', function() {
+            var env = { bindings: { }, outer: { } };
+            evalStatement({tag:"var", name:"x"}, env);
+            assert.deepEqual(turtle.lookup(env, "x"), 0);
+        });
+
+        test(':=', function() {
+            var env = { bindings: { x:0 }, outer: { } };
+            evalStatement({tag:":=", left:"x", right:5}, env);
+            assert.deepEqual(turtle.lookup(env, "x"), 5);
+        });
+        
     });
 
     // suite("step 7", function() {

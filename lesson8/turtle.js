@@ -81,11 +81,10 @@ var evalExpr = function (expr, env, cont, xcont) {
                     }, xcont);
             }, xcont);
     case 'ident': 
-        return thunk(
-            lookup, env, expr.name, function(v) {
-                return thunk(cont, v);
-            });
-        //return thunk(cont, lookup(env, expr.name));
+        return thunk(function() {
+            var result = lookup(env, expr.name);
+            return thunk(cont, result);
+        }, cont, xcont);
     case 'call': throw new Error("call not implemented yet");
         var func = lookup(env, expr.name);
         // Evaluate arguments to pass
@@ -100,11 +99,11 @@ var evalExpr = function (expr, env, cont, xcont) {
     } 
 };
 
-var lookup = function (env, v, cont, xcont) {
+var lookup = function (env, v) {
     if (!(env.hasOwnProperty('bindings')))
-        return thunk(xcont, v + " not found");
+        throw new Error(v + " not found");
     if (env.bindings.hasOwnProperty(v))
-        return thunk(cont, env.bindings[v])
+       return(env.bindings[v])
     return lookup(env.outer, v);
 };
 
@@ -116,20 +115,20 @@ var evalStatement = function (stmt, env, cont, xcont) {
     case 'ignore':     // A single expression
         return thunk(evalExpr, stmt.body, env, cont, xcont);
     case 'var':        // Declare new variable
-        return thunk(add_binding, env, stmt.name, cont, xcont);
+        return thunk(
+            function(name, value) {
+                add_binding(env, stmt.name, 0);
+                return thunk(cont,0);
+            }, 
+            cont, xcont);
     case ':=':        // Evaluate right hand side
         return thunk(
             evalExpr, stmt.right, env,
             function(v1) {
-                return thunk(
-                    update, stmt.left, v1,
-                    function(v2) {
-                        return thunk(cont, v1);
-                    }, xcont);
-            }, xcont);
-        // val = evalExpr(stmt.right, env);
-        // update(env, stmt.left, val);
-        // return val;
+                update(env, stmt.left, v1);
+                return thunk(cont, v1);
+            }, 
+            xcont);
     case 'if': throw new Error("'if' not implemented yet");
         if(evalExpr(stmt.expr, env)) {
             val = evalStatements(stmt.body, env);
@@ -162,81 +161,55 @@ var evalStatement = function (stmt, env, cont, xcont) {
 };
 
 var evalStatements = function (seq, env, cont, xcont) {
-    throw new Error("evalStatements not implemented yet");
-    // return thunk(
-    //     evalExpr, seq[0], env,
-    //     function(v2) {
-    //         return thunk(cont, v1);
-    //     }, xcont);
-
-    // return thunk(
-    //     evalExpr, seq[0], env,
-    //     function(v1) {
-    //         return thunk(
-    //             evalExpr, seq[1], env,
-    //             function(v2) {
-    //                 return thunk(cont, v1);
-    //             }, xcont);
-    //     }, xcont);
-        
-
-
-    // var result;
-    // for(var i=seq.length-1; i>=0; i--) {
-    //     var value = seq[i];
-    //     var oldresult = result;
-    //     result = thunk(
-    //         evalExpr, value, env, function(v1) {
-    //             return thunk(cont, 
-    //     return thunk(
-    //         evalExpr, stmt.right, env,
-    //         function(v1) {
-    //             return thunk(
-    //                 update, stmt.left, v1,
-    //                 function(v2) {
-    //                     return thunk(cont, v1);
-    //                 }, xcont);
-    //         }, xcont);
-        
-    // var i;
-    // var val = undefined;
-    // for(i = 0; i < seq.length; i++) {
-    //     val = evalStatement(seq[i], env);
-    // }
-    // return val;
+    // Basic code taken from lordlorik
+    var len = seq.length;
+    var index = -1;
+    
+    var stmtEvalCont = function (r) {
+        return ++index < len ? thunk(evalStatement, seq[index], env, stmtEvalCont, xcont) : thunk(cont, r);
+    };
+    
+    return stmtEvalCont(undefined);
 };
 
-var add_binding = function() { // varargs
-    // alert("Adding bindings (" + arguments.length + ") : " + stringify(arguments));
-    var env = arguments[0];
-    //log("env = " + stringify(env));
+var check_env = function(env) {
     if (!(env.hasOwnProperty('bindings'))) {
-        // alert("Initializing env.bindings");
+        log("Initializing env.bindings");
         env.bindings = {}
     }
     if (!(env.hasOwnProperty('outer'))) {
-        // alert("Initializing env.outer");
+        log("Initializing env.outer");
         env.outer = {}
     }
-    if (arguments.length % 2 != 1) {
-        throw new Error("missing value for variable '" + arguments[arguments.length-1] + "'");
+}
+
+// varargs (env, name1, value1, ...., nameX, valueX)
+var add_binding = function() { 
+    log("Adding bindings (" + arguments.length + ") : " + stringify(arguments));
+    var env = arguments[0];
+    check_env(env);
+    
+    var args = [].slice.apply(arguments, [1]);
+
+    if (args.length % 2 !== 0) {
+        throw new Error("missing value for variable '" + args[args.length-1] + "'");
     }
-    for(var i=1; i<arguments.length; i+=2) {
-        var variable = arguments[i];
-        var value = arguments[i+1];
-        // alert("Adding binding internal: " + variable + " = " + stringify(value));
+    for(var i=0; i<args.length; i+=2) {
+        var variable = args[i];
+        var value = args[i+1];
+        log("Adding binding internal: " + variable + " = " + stringify(value));
         if (env.bindings.hasOwnProperty(variable)) {
             throw new Error("variable " + variable + " already defined");
         }
         env.bindings[variable] = value;
     }
-    //alert("New env: " + stringify(env.bindings));
 };
 
 var update = function(env, variable, value) {
+    log("Updateing " + variable + " := " + value)
     for (var e = env; e !== null; e = e.outer) {
         if (!(e.hasOwnProperty("bindings"))) {
-            throw new Error("undefined variable: " + variable);
+            throw new Error("undefined variable: " + variable + " (no bindings key)");
         }
         if (e.bindings.hasOwnProperty(variable)) {
             e.bindings[variable] = value;
@@ -252,4 +225,5 @@ if (typeof module !== 'undefined') {
     module.exports.evalStatement = evalStatement;
     module.exports.trampoline = trampoline;
     module.exports.thunkValue = thunkValue;
+    module.exports.lookup = lookup;
 }
